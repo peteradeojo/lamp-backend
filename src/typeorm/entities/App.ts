@@ -7,7 +7,7 @@ export class App extends TimeStamped {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column()
+	@Column({ type: "varchar", length: 30 })
 	title: string;
 
 	@Column({ nullable: true })

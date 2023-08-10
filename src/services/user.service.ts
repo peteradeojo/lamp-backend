@@ -103,7 +103,7 @@ export class UserService {
 	}
 
 	async verify2Fa(email: string, token: string) {
-		const user = await this.userRepository.findOneBy({ email });
+		const user = await this.userRepository.findOne({ where: { email }, select: ['twoFactorSecret', 'email', 'id', 'name'] });
 		if (!user) {
 			throw new Error("User not found");
 		}

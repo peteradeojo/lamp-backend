@@ -1,5 +1,4 @@
 import express, {
-	ErrorRequestHandler,
 	Express,
 	NextFunction,
 	Request,
@@ -7,7 +6,6 @@ import express, {
 } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { DataSource } from "typeorm";
 import passport from "passport";
 
 const debug = require("debug")("app:server");
@@ -22,12 +20,10 @@ export default class Server {
 	private static app: Express;
 	private static port: number;
 
-	private static datasources: DataSource[] = [AppDataSource];
-
 	private static async bootstrap() {
 		try {
+			Cache.initialize();
 			await Database.initialize(AppDataSource);
-			await Cache.initialize();
 		} catch (err) {
 			debug(err);
 		}
@@ -60,7 +56,7 @@ export default class Server {
 			return next();
 		});
 
-		this.registerRoutes(app);
+		Server.registerRoutes(app);
 
 		app.use((req, res) => {
 			return res.status(404).json({
@@ -69,15 +65,15 @@ export default class Server {
 			});
 		});
 
-		this.app = app;
-		this.port = parseInt(process.env.PORT!) || 3000;
+		Server.app = app;
+		Server.port = parseInt(process.env.PORT!) || 3000;
 	}
 
 	public static async start() {
 		// await this.bootstrap();
-		this.app.listen(
-			this.port,
-			debug(`Server is listening on port ${this.port}`)
+		Server.app.listen(
+			Server.port,
+			debug(`Server is listening on port ${Server.port}`)
 		);
 	}
 

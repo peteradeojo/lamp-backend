@@ -18,12 +18,12 @@ export class User extends TimeStamped {
 	@Column({ type: "varchar", unique: true, length: 50 })
 	email: string;
 
-	@Column({ type: "varchar", length: 60 })
+	@Column({ type: "varchar", length: 60, select: false })
 	password?: string;
 
 	@Column({ type: "boolean", default: false })
 	isAdmin: boolean;
 
-	@Column({ type: "varchar", default: false, length: 255 })
+	@Column({ type: "varchar", default: false, length: 255, select: false })
 	twoFactorSecret?: string;
 }
