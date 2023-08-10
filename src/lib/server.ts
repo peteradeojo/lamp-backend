@@ -17,10 +17,10 @@ import { v1Router } from "../routes/v1";
 import passportConfig from "./passport";
 
 export default class Server {
-	private static app: Express;
+	private static readonly app: Express = express();
 	private static port: number;
 
-	private static async bootstrap() {
+	public static async bootstrap() {
 		try {
 			Cache.initialize();
 			await Database.initialize(AppDataSource);
@@ -32,21 +32,19 @@ export default class Server {
 	public static async initialize() {
 		await Server.bootstrap();
 
-		const app = express();
-
-		if (app.get("env") === "development") {
-			app.use(require("morgan")("dev"));
+		if (Server.app.get("env") === "development") {
+			Server.app.use(require("morgan")("dev"));
 		}
 
-		app.use(cors(corsOptions));
-		app.use(helmet());
-		app.use(express.json());
-		app.use(express.urlencoded({ extended: true }));
+		Server.app.use(cors(corsOptions));
+		Server.app.use(helmet());
+		Server.app.use(express.json());
+		Server.app.use(express.urlencoded({ extended: true }));
 
 		passportConfig(passport);
-		app.use(passport.initialize());
+		Server.app.use(passport.initialize());
 
-		app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+		Server.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 			if (err) {
 				debug(err);
 				return res.status(500).json({
@@ -56,18 +54,20 @@ export default class Server {
 			return next();
 		});
 
-		Server.registerRoutes(app);
+		Server.registerRoutes(Server.app);
 
-		app.use((req, res) => {
+		Server.app.use((req, res) => {
 			return res.status(404).json({
 				status: 404,
 				message: "Not found",
 			});
 		});
 
-		Server.app = app;
+		// Server.app = app;
 		Server.port = parseInt(process.env.PORT!) || 3000;
 	}
+
+	public static getApp = () => Server.app;
 
 	public static async start() {
 		// await this.bootstrap();
