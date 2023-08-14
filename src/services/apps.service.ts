@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 
 export class AppService {
 	private appRepository: Repository<App>;
+	private repo = App;
 
 	constructor() {
 		this.appRepository = Database.datasource?.getRepository(App)!;
@@ -24,6 +25,16 @@ export class AppService {
 
 	async createApp(userId: number, title: string) {
 		await this.initialize();
+
+		let appCheck = await this.appRepository.countBy({
+			title,
+			user: { id: userId },
+		});
+
+		if (appCheck > 0) {
+			throw new Error("App already exists");
+		}
+
 		const app = this.appRepository.create({ title, user: { id: userId } });
 		await this.appRepository.save(app);
 
@@ -48,5 +59,12 @@ export class AppService {
 	async updateApp(appId: number, title: string) {
 		await this.initialize();
 		await this.appRepository.update({ id: appId }, { title });
+	}
+
+	async getAppByToken(token: string) {
+		await this.initialize();
+		return await this.appRepository.findOne({
+			where: { token },
+		});
 	}
 }

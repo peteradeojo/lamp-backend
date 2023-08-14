@@ -3,14 +3,14 @@ import Joi from "joi";
 
 import { AppService } from "../../services/apps.service";
 import { User } from "../../typeorm/entities/User";
-import { validateSchema } from "../../middleware/ValidateSchema";
+import { validateSchema as validateBody } from "../../middleware/ValidateSchema";
 
 const debug = require("debug")("app:apps-router");
 
 const router = Router();
 
 const appService = new AppService();
-export default function (): Router {
+export default function appsRouter (): Router {
 	router.get("/", async (req, res) => {
 		try {
 			const apps = await appService.getUserApps((req.user as User).id);
@@ -23,7 +23,7 @@ export default function (): Router {
 
 	router.post(
 		"/",
-		validateSchema(
+		validateBody(
 			Joi.object({
 				title: Joi.string().required(),
 			}).required()
@@ -35,7 +35,7 @@ export default function (): Router {
 
 				return res.json({ message: "", data: { app } });
 			} catch (err: any) {
-				return res.json({ message: err.message, data: {} });
+				return res.status(500).json({ message: err.message });
 			}
 		}
 	);
@@ -71,7 +71,7 @@ export default function (): Router {
 
 	router.patch(
 		"/:id/update",
-		validateSchema(Joi.object({ title: Joi.string().required().trim() })),
+		validateBody(Joi.object({ title: Joi.string().required().trim() })),
 		async (req, res) => {
 			const { id } = req.params;
 
@@ -80,7 +80,7 @@ export default function (): Router {
 
 				return res.json({ message: "App updated successfully", data: { app } });
 			} catch (err: any) {
-				return res.json({ message: err.message, data: {} });
+				return res.json({ message: err.message });
 			}
 		}
 	);
