@@ -1,7 +1,7 @@
-import { Log, LogType } from "../typeorm/entities/Log";
+import { Log, LogType } from "@entities/Log";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-import { Database } from "../lib/database";
-import { App } from "../typeorm/entities/App";
+import { Database } from "@lib/database";
+import { App } from "@entities/App";
 
 export type LogData = {
 	level: LogType;

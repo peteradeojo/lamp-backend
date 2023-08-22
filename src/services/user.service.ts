@@ -1,14 +1,18 @@
 import { User } from "../typeorm/entities/User";
 import { Database } from "../lib/database";
-import { Repository } from "typeorm";
+import { FindManyOptions, MoreThanOrEqual, Repository } from "typeorm";
 import { compareSync, hashSync } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import speakeasy from "speakeasy";
 
 const debug = require("debug")("app:UserService");
 
+type UserType = Omit<User, "twoFactorEnabled"> & {
+	twoFactorEnabled?: boolean;
+};
+
 export class UserService {
-	private userRepository: Repository<User>;
+	private userRepository: Repository<UserType>;
 
 	constructor() {
 		// if (!Database.datasource) {
@@ -24,54 +28,93 @@ export class UserService {
 		}
 	}
 
-	async getAllUsers(): Promise<User[]> {
-		return [];
+	async getAllUsers(query: {
+		page?: number;
+		count?: number;
+		recent?: boolean;
+	}): Promise<UserType[]> {
+		await this.initialize();
+		const { page = 1, count = 10, recent = false } = query;
+
+		const params: FindManyOptions = {
+			skip: (page - 1) * count, // 0
+			take: count, // 10
+			order: {
+				createdAt: "DESC",
+			},
+		};
+
+		if (recent === true) {
+			params.where = {
+				createdAt: MoreThanOrEqual(
+					new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
+				),
+			};
+		}
+
+		const users = await this.userRepository.find(params);
+
+		return users;
 	}
 
-	private generateUserToken(user: User) {
+	private generateUserToken(user: User | UserType) {
 		return sign({ id: user.id }, process.env.JWT_SECRET!, {
 			expiresIn: process.env.JWT_EXPIRES_IN || "1h",
 		});
 	}
 
 	async authenticate(
-		email: string | User,
+		email: string | UserType,
 		password?: string
 	): Promise<
-		{ token?: string; user?: User; twoFactorEnabled?: boolean } | undefined
+		{ token?: string; user?: UserType; twoFactorEnabled?: boolean } | undefined
 	> {
-		if (email instanceof User) {
-			return {
-				token: this.generateUserToken(email),
-				user: { ...email, password: undefined },
-			};
-		}
+		await this.initialize();
 
-		if (!password) {
-			throw new Error("Password is required");
-		}
+		if (typeof email === "string") {
+			if (!password) {
+				throw new Error("Password is required");
+			}
 
-		const user = await this.userRepository.findOneBy({ email });
-		if (user) {
-			if (compareSync(password, user.password!)) {
-				if (user.twoFactorSecret) {
+			const user = await this.userRepository.findOne({
+				where: { email },
+				select: [
+					"email",
+					"password",
+					"name",
+					"isAdmin",
+					"twoFactorSecret",
+					"id",
+				],
+			});
+
+			if (user) {
+				if (compareSync(password!, user.password!)) {
+					if (user.twoFactorSecret) {
+						return {
+							twoFactorEnabled: true,
+						};
+					}
+
 					return {
-						twoFactorEnabled: true,
+						user: { ...user, password: undefined },
+						token: this.generateUserToken(user),
 					};
 				}
-
-				return {
-					user: { ...user, password: undefined },
-					token: this.generateUserToken(user),
-				};
 			}
+
+			return;
 		}
-		return;
+
+		return {
+			token: this.generateUserToken(email),
+			user: { ...email, password: undefined },
+		};
 	}
 
 	async createUser(
-		data: Pick<User, "email" | "name" | "password">
-	): Promise<User> {
+		data: Pick<User | UserType, "email" | "name" | "password">
+	): Promise<UserType> {
 		const user = this.userRepository.create(data);
 
 		user.password = hashSync(
@@ -82,7 +125,7 @@ export class UserService {
 		return user;
 	}
 
-	async getUserById(id: string): Promise<User | null> {
+	async getUserById(id: string): Promise<UserType | null> {
 		await this.initialize();
 		return this.userRepository.findOne({ where: { id: parseInt(id) } });
 	}
@@ -103,7 +146,10 @@ export class UserService {
 	}
 
 	async verify2Fa(email: string, token: string) {
-		const user = await this.userRepository.findOne({ where: { email }, select: ['twoFactorSecret', 'email', 'id', 'name'] });
+		const user = await this.userRepository.findOne({
+			where: { email },
+			select: ["twoFactorSecret", "email", "id", "name"],
+		});
 		if (!user) {
 			throw new Error("User not found");
 		}
@@ -129,5 +175,10 @@ export class UserService {
 			debug(err);
 			return false;
 		}
+	}
+
+	async getNumberOfUsers() {
+		await this.initialize();
+		return await this.userRepository.count();
 	}
 }

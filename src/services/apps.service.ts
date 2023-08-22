@@ -67,4 +67,13 @@ export class AppService {
 			where: { token },
 		});
 	}
+
+	async getNumberOfApps(userId?: number) {
+		await this.initialize();
+		if (userId) {
+			return await this.appRepository.countBy({ user: { id: userId } });
+		}
+
+		return await this.appRepository.count();
+	}
 }

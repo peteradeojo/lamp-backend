@@ -16,10 +16,37 @@ const passportConfig = (passport: PassportStatic) => {
 			},
 			async (payload: JwtPayload, done: DoneCallback) => {
 				const { id } = payload;
+				if (!id) return done(null, false);
 				try {
 					const user = await userService.getUserById(id);
 					if (user) {
-            user.password = undefined;
+						// user.password = undefined;
+						return done(null, user);
+					}
+
+					return done(null, false);
+				} catch (err) {
+					debug(err);
+					return done(err, false);
+				}
+			}
+		)
+	);
+
+	passport.use(
+		"admin",
+		new JwtStrategy(
+			{
+				secretOrKey: process.env.JWT_SECRET!,
+				jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			},
+			async (payload: JwtPayload, done: DoneCallback) => {
+				const { id } = payload;
+				if (!id) return done(null, false);
+				try {
+					const user = await userService.getUserById(id);
+					if (user && user.isAdmin) {
+						// user.password = undefined;
 						return done(null, user);
 					}
 

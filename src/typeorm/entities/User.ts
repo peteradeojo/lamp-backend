@@ -26,4 +26,8 @@ export class User extends TimeStamped {
 
 	@Column({ type: "varchar", default: false, length: 255, select: false })
 	twoFactorSecret?: string;
+
+	get twoFactorEnabled(): boolean | undefined {
+		return !!this.twoFactorSecret;
+	}
 }
