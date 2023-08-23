@@ -19,3 +19,15 @@ export const AppDataSource = new DataSource({
 	subscribers: [],
 	// dropSchema: true,
 });
+
+export const MetricDataSource = new DataSource({
+	type: "mysql",
+	host: process.env.METRIC_DB_HOST,
+	port: parseInt(process.env.METRIC_DB_PORT!),
+	username: process.env.METRIC_DB_USER,
+	password: process.env.METRIC_DB_PASSWORD,
+	database: process.env.METRIC_DATABASE,
+	synchronize: true,
+	logging: false,
+	cache: true,
+});

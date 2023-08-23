@@ -1,9 +1,4 @@
-import express, {
-	Express,
-	NextFunction,
-	Request,
-	Response,
-} from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import passport from "passport";
@@ -17,8 +12,8 @@ import { v1Router } from "../routes/v1";
 import passportConfig from "./passport";
 
 export default class Server {
-	private static readonly app: Express = express();
-	private static port: number;
+	protected static readonly app: Express = express();
+	protected static port: number;
 
 	public static async bootstrap() {
 		try {
@@ -44,15 +39,17 @@ export default class Server {
 		passportConfig(passport);
 		Server.app.use(passport.initialize());
 
-		Server.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-			if (err) {
-				debug(err);
-				return res.status(500).json({
-					message: err.message,
-				});
+		Server.app.use(
+			(err: any, req: Request, res: Response, next: NextFunction) => {
+				if (err) {
+					debug(err);
+					return res.status(500).json({
+						message: err.message,
+					});
+				}
+				return next();
 			}
-			return next();
-		});
+		);
 
 		Server.registerRoutes(Server.app);
 

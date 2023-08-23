@@ -21,7 +21,10 @@ export default function (): Router {
 			session: false,
 		}),
 		async (req, res) => {
-			return res.json(req.user);
+			return res.json({
+				data: { user: req.user },
+				message: "",
+			});
 		}
 	);
 

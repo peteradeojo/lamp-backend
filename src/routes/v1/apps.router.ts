@@ -15,7 +15,7 @@ export default function appsRouter (): Router {
 		try {
 			const apps = await appService.getUserApps((req.user as User).id);
 
-			return res.json({ message: "", data: { apps } });
+			return res.json({ message: "", data: apps });
 		} catch (error: any) {
 			return res.json({ message: error.message, data: {} });
 		}

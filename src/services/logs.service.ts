@@ -3,6 +3,9 @@ import { FindOptionsWhere, Like, Repository } from "typeorm";
 import { Database } from "@lib/database";
 import { App } from "@entities/App";
 
+import { IoManager } from "@lib/iomanager";
+import { debug } from "console";
+
 export type LogData = {
 	level: LogType;
 	text: string;
@@ -75,6 +78,13 @@ export class LogService {
 		const log = this.logsRepository.create({
 			...logData,
 		});
+
+		const io = IoManager.getInstance();
+
+		const room = IoManager.getSocketForRoom(logData.app.token as any);
+		if (room) {
+			io.to(room.id).emit("log", log);
+		}
 
 		await this.logsRepository.save(log);
 	}

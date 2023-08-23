@@ -6,7 +6,8 @@ if (process.env.NODE_ENV !== "production") {
 	});
 }
 
-import Server from "./lib/server";
+// import Server from "./lib/server";
+import Server from "@lib/ioserver";
 
 (async () => {
 	await Server.initialize();
