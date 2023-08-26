@@ -9,6 +9,7 @@ import {
 } from "../../middleware/ValidateSchema";
 import { AppService } from "../../services/apps.service";
 import { LogType } from "../../typeorm/entities/Log";
+import { IoManager } from "@lib/iomanager";
 
 const router = Router();
 
@@ -29,6 +30,7 @@ export default function logsRouter() {
 		),
 		async (req, res) => {
 			const app = await appService.getAppByToken(req.headers.APP_ID as string);
+			const io = IoManager.getInstance();
 			if (!app) {
 				return res.status(401).json({ error: "App not found" });
 			}
@@ -38,12 +40,13 @@ export default function logsRouter() {
 			}
 
 			try {
-				await logService.saveLog({
+				const log = await logService.saveLog({
 					app: { id: app.id },
 					...req.body,
 					ip: req.ip,
 				});
 
+				IoManager.sendTo('log', log.app.id, log);
 				return res.json({ ok: true });
 			} catch (err: any) {
 				return res.status(500).json({ error: err.message });

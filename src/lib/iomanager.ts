@@ -49,6 +49,7 @@ export class IoManager {
 
 	public static getInstance(): Server {
 		if (!IoManager.io) {
+			// IoManager.initialize();
 			throw new Error("IoManager is not initialized. Call initialize() first.");
 		}
 		return IoManager.io;
@@ -77,7 +78,17 @@ export class IoManager {
 		return io;
 	}
 
-  public static getSocketForRoom(room: string): {token: string, id: string} | undefined {
-    return IoManager.rooms.find((r) => r.token === room);
-  }
+	public static getSocketForRoom(room: string): { token: string; id: string } | undefined {
+		return IoManager.rooms.find((r) => r.token === room);
+	}
+
+	public static sendTo(message: string, room?: string | number, data?: any) {
+		const destination = IoManager.rooms.find((val) => val.token == room);
+		// console.log(this.rooms);
+		// console.log(destination);
+
+		if (destination) {
+			IoManager.io?.to(destination.id).emit(message, data);
+		}
+	}
 }
