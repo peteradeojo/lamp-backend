@@ -10,6 +10,7 @@
     "@types/jest": "^29.5.3",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.4.8",
+    "@types/node-cron": "^3.0.8",
     "@types/passport": "^1.0.12",
     "@types/passport-jwt": "^3.0.9",
     "@types/passport-local": "^1.0.35",
@@ -28,6 +29,7 @@
   "dependencies": {
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
     "debug": "^4.3.4",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
@@ -38,6 +40,7 @@
     "mongoose": "^7.4.2",
     "morgan": "^1.10.0",
     "mysql2": "^3.6.0",
+    "node-cron": "^3.0.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -49,10 +52,13 @@
     "uuid": "^9.0.0"
   },
   "scripts": {
+    "dev-setup": "NODE_ENV=development DEBUG=app,app:* tsnd --respawn --transpile-only --cls --rs --ignore-watch node_modules --no-notify -r tsconfig-paths/register",
     "dev": "NODE_ENV=development DEBUG=app,app:* tsnd --respawn --transpile-only --cls --rs --ignore-watch node_modules --no-notify -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "start": "node -r module-alias/register dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "dev-metrics": "npm run dev-setup src/metric-collator.ts",
+    "start-metrics": "node -r module-alias/register dist/metric-collator.js"
   },
   "engines": {
     "node": "^16"
