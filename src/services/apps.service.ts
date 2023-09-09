@@ -63,7 +63,7 @@ export class AppService {
 
 	async getAppByToken(token: string) {
 		await this.initialize();
-		return await this.appRepository.findOne({
+		return await this.appRepository?.findOne({
 			where: { token },
 		});
 	}
