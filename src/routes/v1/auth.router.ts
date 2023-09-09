@@ -3,6 +3,7 @@ import Joi from "joi";
 import passport from "passport";
 import speakeasy from "speakeasy";
 import QR from "qrcode";
+import fetch from "node-fetch";
 
 const debug = require("debug")("app:auth-routes");
 
@@ -85,26 +86,22 @@ export default function (): Router {
 		}
 	);
 
-	router.get(
-		"/2fa/setup",
-		passport.authenticate("jwt", { session: false }),
-		async (req, res) => {
-			const { user } = req;
+	router.get("/2fa/setup", passport.authenticate("jwt", { session: false }), async (req, res) => {
+		const { user } = req;
 
-			const secret = speakeasy.generateSecret({
-				name: "LAMP",
-				otpauth_url: true,
-				length: 32,
-				issuer: "LAMP",
-			});
-			const qrCode = await QR.toDataURL(secret.otpauth_url);
+		const secret = speakeasy.generateSecret({
+			name: "LAMP",
+			otpauth_url: true,
+			length: 32,
+			issuer: "LAMP",
+		});
+		const qrCode = await QR.toDataURL(secret.otpauth_url);
 
-			return res.json({
-				secret: secret.base32,
-				qrCode,
-			});
-		}
-	);
+		return res.json({
+			secret: secret.base32,
+			qrCode,
+		});
+	});
 
 	router.post(
 		"/2fa/enable",
@@ -148,10 +145,7 @@ export default function (): Router {
 		validateSchema(
 			Joi.object({
 				email: Joi.string().email().required(),
-				token: Joi.string()
-					.pattern(/\d{6}/)
-					.message("Invalid token")
-					.required(),
+				token: Joi.string().pattern(/\d{6}/).message("Invalid token").required(),
 			})
 		),
 		async (req, res) => {
@@ -167,6 +161,73 @@ export default function (): Router {
 			return res.json({ data: result, message: "" });
 		}
 	);
+
+	router.get("/github", passport.authenticate("github", { scope: ["read:user", "user:email"] }));
+	router.get("/github/callback", async (req, res, next) => {
+		const { code } = req.query;
+
+		try {
+			const response = await fetch("https://github.com/login/oauth/access_token", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					client_id: process.env.GITHUB_CLIENT_ID,
+					client_secret: process.env.GITHUB_CLIENT_SECRET,
+					code,
+					redirect_url: process.env.GITHUB_CALLBACK_URL,
+				}),
+			});
+
+			const data = await response.json();
+			console.log(data);
+
+			const userResponse = await fetch("https://api.github.com/user", {
+				headers: {
+					Authorization: `Bearer ${data.access_token}`,
+				},
+			});
+
+			const userEmailsResponse = await fetch("https://api.github.com/user/emails", {
+				headers: {
+					Authorization: `Bearer ${data.access_token}`,
+				},
+			});
+
+			const emails: any[] = await userEmailsResponse.json();
+
+			const userData = await userResponse.json();
+
+			const email = emails.find((email: any) => email.primary === true && email.verified === true);
+
+			console.log(userData, email);
+
+			let user = await userService.getUser({ where: { email: email.email } });
+
+			if (!user) {
+				user = userService.newUser({
+					email: email.email,
+					name: userData.login,
+					githubId: userData.id,
+					password: "",
+				}) as any;
+			} else {
+				user.githubId = userData.id;
+				user = await userService.updateUser(user);
+			}
+
+			const result = userService.authenticateGithub(user as any);
+
+			console.log(result);
+			return res.json(userService.authenticateGithub(user as any));
+		} catch (err: any) {
+			return res.status(500).json({
+				message: err.message,
+			});
+		}
+	});
 
 	return router;
 }

@@ -46,9 +46,7 @@ export class UserService {
 
 		if (recent === true) {
 			params.where = {
-				createdAt: MoreThanOrEqual(
-					new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
-				),
+				createdAt: MoreThanOrEqual(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)),
 			};
 		}
 
@@ -66,9 +64,7 @@ export class UserService {
 	async authenticate(
 		email: string | UserType,
 		password?: string
-	): Promise<
-		{ token?: string; user?: UserType; twoFactorEnabled?: boolean } | undefined
-	> {
+	): Promise<{ token?: string; user?: UserType; twoFactorEnabled?: boolean } | undefined> {
 		await this.initialize();
 
 		if (typeof email === "string") {
@@ -78,14 +74,7 @@ export class UserService {
 
 			const user = await this.userRepository.findOne({
 				where: { email },
-				select: [
-					"email",
-					"password",
-					"name",
-					"isAdmin",
-					"twoFactorSecret",
-					"id",
-				],
+				select: ["email", "password", "name", "isAdmin", "twoFactorSecret", "id"],
 			});
 
 			if (user) {
@@ -112,15 +101,10 @@ export class UserService {
 		};
 	}
 
-	async createUser(
-		data: Pick<User | UserType, "email" | "name" | "password">
-	): Promise<UserType> {
+	async createUser(data: Pick<User | UserType, "email" | "name" | "password">): Promise<UserType> {
 		const user = this.userRepository.create(data);
 
-		user.password = hashSync(
-			data.password!,
-			parseInt(process.env.SALT_ROUNDS! || "10")
-		);
+		user.password = hashSync(data.password!, parseInt(process.env.SALT_ROUNDS! || "10"));
 		await this.userRepository.save(user);
 		return user;
 	}
@@ -180,5 +164,27 @@ export class UserService {
 	async getNumberOfUsers() {
 		await this.initialize();
 		return await this.userRepository.count();
+	}
+
+	async getUser(query: FindManyOptions<UserType>) {
+		return await this.userRepository.findOne(query);
+	}
+
+	async newUser(data: any) {
+		const user = this.userRepository.create(data);
+		await this.userRepository.save(user);
+		return user;
+	}
+
+	authenticateGithub(user: User) {
+		return {
+			user,
+			token: this.generateUserToken(user!),
+		};
+	}
+
+	async updateUser(user: any) {
+		await this.userRepository.save(user);
+		return user;
 	}
 }
