@@ -20,6 +20,7 @@ export default class Server {
 			Cache.initialize();
 			await Database.initialize(AppDataSource);
 		} catch (err) {
+			console.error(err);
 			debug(err);
 		}
 	}
