@@ -9,7 +9,7 @@ if (process.env.NODE_ENV == "development") {
 }
 
 import { Database } from "@lib/database";
-import { MetricDataSource } from "typeorm/data-source";
+import { MetricDataSource } from "./typeorm/data-source";
 import { Metrics } from "@entities/Metrics";
 
 (async () => {
