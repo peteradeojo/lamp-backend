@@ -182,8 +182,6 @@ export default function (): Router {
 			});
 
 			const data = await response.json();
-			console.log(data);
-
 			const userResponse = await fetch("https://api.github.com/user", {
 				headers: {
 					Authorization: `Bearer ${data.access_token}`,
@@ -202,8 +200,6 @@ export default function (): Router {
 
 			const email = emails.find((email: any) => email.primary === true && email.verified === true);
 
-			console.log(userData, email);
-
 			let user = await userService.getUser({ where: { email: email.email } });
 
 			if (!user) {
@@ -220,7 +216,6 @@ export default function (): Router {
 
 			const result = userService.authenticateGithub(user as any);
 
-			console.log(result);
 			return res.json(userService.authenticateGithub(user as any));
 		} catch (err: any) {
 			return res.status(500).json({
