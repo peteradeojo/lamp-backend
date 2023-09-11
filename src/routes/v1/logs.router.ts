@@ -29,8 +29,7 @@ export default function logsRouter() {
 			})
 		),
 		async (req, res) => {
-			const app = await appService.getAppByToken(req.headers.APP_ID as string);
-			const io = IoManager.getInstance();
+			const app = await appService.getAppByToken(req.header('APP_ID')!);
 			if (!app) {
 				return res.status(401).json({ error: "App not found" });
 			}
