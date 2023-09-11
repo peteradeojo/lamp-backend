@@ -8,9 +8,36 @@ if (process.env.NODE_ENV == "development") {
 	});
 }
 
+const debug = require("debug")("app:collator");
+
 import { Database } from "@lib/database";
 import { MetricDataSource } from "./typeorm/data-source";
 import { Metrics } from "@entities/Metrics";
+import { EntityManager, QueryRunner } from "typeorm";
+
+const minuteInterval = process.env.MINUTE_INTERVAL ? parseInt(process.env.MINUTE_INTERVAL) : 30;
+
+const collate = async (queryRunner: QueryRunner, metricManager: EntityManager, minuteInterval: number) => {
+	const date = subMinutes(new Date(), minuteInterval);
+
+	const data: {
+		level: string;
+		weight: number;
+		createdAt: Date;
+		app: string | number;
+	}[] = await queryRunner.query(
+		"SELECT level, count(id) weight, appId app, max(createdAt) createdAt FROM logs log where createdAt >= ? GROUP BY log.appId, log.level",
+		[format(date, "yyyy-MM-dd HH:mm:00")]
+	);
+
+	if (data.length > 0) {
+		const result = await metricManager.insert(Metrics, data as any);
+		debug(`Generated ${result.raw.affectedRows} rows of metric data`);
+		return;
+	}
+
+	debug("No metrics gathered");
+};
 
 (async () => {
 	try {
@@ -19,25 +46,8 @@ import { Metrics } from "@entities/Metrics";
 		const queryRunner = Database.getDatasource()!.createQueryRunner();
 		const metricManager = Database.datasource!.manager;
 
-		cron.schedule("*/30 * * * *", async () => {
-			const date = subMinutes(new Date(), 30);
-			const data: {
-				level: string;
-				weight: number;
-				createdAt: Date;
-				app: string | number;
-			}[] = await queryRunner.query(
-				"SELECT level, count(id) weight, appId app, max(createdAt) createdAt FROM logs log where createdAt >= ? GROUP BY log.appId, log.level",
-				[format(date, "yyyy-MM-dd HH:mm:00")]
-			);
-
-			if (data.length > 0) {
-				const result = await metricManager.insert(Metrics, data as any);
-				console.log(`Generated ${result.raw.affectedRows} rows of metric data`);
-				return;
-			}
-
-      console.log("No metrics gathered");
+		cron.schedule(`*/${minuteInterval} * * * *`, async () => {
+			collate(queryRunner, metricManager, minuteInterval);
 		});
 	} catch (err) {
 		console.error(err);

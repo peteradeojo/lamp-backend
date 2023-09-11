@@ -62,7 +62,7 @@
     "build": "tsc",
     "start": "cross-env DEBUG=app,app:* node -r module-alias/register dist/index.js",
     "test": "jest",
-    "dev-metrics": "npm run dev-setup src/metric-collator.ts",
+    "dev-metrics": "DEBUG=app,app:* npm run dev-setup src/metric-collator.ts",
     "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js"
   },
   "engines": {
