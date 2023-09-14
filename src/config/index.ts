@@ -2,7 +2,7 @@ import { CorsOptions } from "cors";
 import { RedisOptions } from "ioredis";
 
 export const corsOptions: CorsOptions = {
-  origin: process.env.ALLOWED_ORIGINS!,
+  origin: process.env.ALLOWED_ORIGINS!.split(','),
 };
 
 export const defaultRedisConfig: RedisOptions = {
