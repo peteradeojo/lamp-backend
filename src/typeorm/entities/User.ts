@@ -24,7 +24,7 @@ export class User extends TimeStamped {
 	@Column({ type: "boolean", default: false })
 	isAdmin: boolean;
 
-	@Column({ type: "varchar", default: false, length: 255, select: false })
+	@Column({ type: "varchar", length: 255, select: false, nullable: true })
 	twoFactorSecret?: string;
 
 	@Column({ type: "varchar", nullable: true })
