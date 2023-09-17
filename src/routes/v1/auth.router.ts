@@ -225,17 +225,5 @@ export default function (): Router {
 		}
 	});
 
-	router.post('/password', async (req, res) => {
-		const user = await userService.getUser({ where: { email: 'adeojopeter@gmail.com' } });
-		if (!user) {
-			return res.status(400).json();
-		}
-
-		user.password = hashSync('Peterojo32#', 10);
-		await userService.updateUser(user);
-
-		return res.status(200).json();
-	});
-
 	return router;
 }
