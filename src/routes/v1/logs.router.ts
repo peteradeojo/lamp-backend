@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Joi from "joi";
 import passport from "passport";
+import { Ipware } from "@fullerstack/nax-ipware";
 
 import { LogService } from "../../services/logs.service";
 import {
@@ -15,6 +16,8 @@ const router = Router();
 
 const logService = new LogService();
 const appService: Pick<AppService, "getAppByToken"> = new AppService();
+
+const ipware = new Ipware();
 
 export default function logsRouter() {
 	router.post(
@@ -39,10 +42,11 @@ export default function logsRouter() {
 			}
 
 			try {
+				const ip = ipware.getClientIP(req);
 				const log = await logService.saveLog({
 					app: { id: app.id },
 					...req.body,
-					ip: req.ip,
+					ip: ip?.ip || req.ip,
 				});
 
 				IoManager.sendTo('log', log.app.id, log);
