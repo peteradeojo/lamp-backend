@@ -1,8 +1,15 @@
 import { CorsOptions } from "cors";
 import { RedisOptions } from "ioredis";
 
+const whiteList = process.env.ALLOWED_ORIGINS!.split(',');
 export const corsOptions: CorsOptions = {
-  origin: process.env.ALLOWED_ORIGINS!.split(','),
+  origin: function (origin, callback) {
+    if (origin && whiteList.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
 };
 
 export const defaultRedisConfig: RedisOptions = {
