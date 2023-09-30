@@ -12,6 +12,10 @@ const debug = require("debug")("app:admin-router");
 export default function adminRouter() {
 	const router = Router();
 
+	router.get('/auth', passport.authenticate('admin', {session: false}) , (req, res) => {
+		return res.json(req.user);
+	});
+
 	router.post(
 		"/auth/login",
 		validateSchema(
@@ -31,7 +35,9 @@ export default function adminRouter() {
 						return res.status(403).json({ message: "Forbidden" });
 					}
 
-					return res.json(result);
+					console.log(result);
+
+					return res.json({data: result});
 				}
 			} catch (err: any) {
 				debug(err);
