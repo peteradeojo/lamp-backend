@@ -1,9 +1,11 @@
-import { AppService } from "@services/apps.service";
-import { UserService } from "@services/user.service";
 import { Router } from "express";
 import Joi from "joi";
-import { validateQuerySchema, validateSchema } from "@middleware/ValidateSchema";
 import passport from "passport";
+
+import adminUserRouter from "./admin/users.router";
+import { validateQuerySchema, validateSchema } from "@middleware/ValidateSchema";
+import { AppService } from "@services/apps.service";
+import { UserService } from "@services/user.service";
 
 const userService = new UserService();
 const appService = new AppService();
@@ -12,7 +14,7 @@ const debug = require("debug")("app:admin-router");
 export default function adminRouter() {
 	const router = Router();
 
-	router.get('/auth', passport.authenticate('admin', {session: false}) , (req, res) => {
+	router.get("/auth", passport.authenticate("admin", { session: false }), (req, res) => {
 		return res.json(req.user);
 	});
 
@@ -35,9 +37,7 @@ export default function adminRouter() {
 						return res.status(403).json({ message: "Forbidden" });
 					}
 
-					console.log(result);
-
-					return res.json({data: result});
+					return res.json({ data: result });
 				}
 			} catch (err: any) {
 				debug(err);
@@ -72,36 +72,30 @@ export default function adminRouter() {
 					page,
 					count,
 					total: users.length,
-					next:
-						users.length === count
-							? `/admin/users?page=${page + 1}&count=${count}`
-							: null,
-					previous:
-						page > 1 ? `/admin/users?page=${page - 1}&count=${count}` : null,
+					next: users.length === count ? `/admin/users?page=${page + 1}&count=${count}` : null,
+					previous: page > 1 ? `/admin/users?page=${page - 1}&count=${count}` : null,
 				},
 			});
 		}
 	);
 
-	router.get(
-		"/analytics",
-		passport.authenticate("admin", { session: false }),
-		async (req, res) => {
-			const appCount = await appService.getNumberOfApps();
-			const userCount = await userService.getNumberOfUsers();
+	router.use("/users", passport.authenticate("admin", { session: false }), adminUserRouter());
 
-			return res.json({
-				data: {
-					apps: {
-						total: appCount,
-					},
-					users: {
-						total: userCount,
-					},
+	router.get("/analytics", passport.authenticate("admin", { session: false }), async (req, res) => {
+		const appCount = await appService.getNumberOfApps();
+		const userCount = await userService.getNumberOfUsers();
+
+		return res.json({
+			data: {
+				apps: {
+					total: appCount,
 				},
-			});
-		}
-	);
+				users: {
+					total: userCount,
+				},
+			},
+		});
+	});
 
 	return router;
 }

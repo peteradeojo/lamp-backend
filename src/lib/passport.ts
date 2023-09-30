@@ -72,8 +72,6 @@ const passportConfig = (passport: PassportStatic) => {
 				try {
 					let user = await userService.getUser({ where: { githubId: profile.id } });
 
-					console.log(profile);
-
 					if (!user) {
 						user = (await userService.newUser({
 							name: profile.displayName,
