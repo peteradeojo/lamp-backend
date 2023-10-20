@@ -17,7 +17,7 @@ export default class Server {
 
 	public static async bootstrap() {
 		try {
-			Cache.initialize();
+			// Cache.initialize();
 			await Database.initialize(AppDataSource);
 		} catch (err) {
 			console.error(err);
