@@ -26,7 +26,7 @@ export class Log extends TimeStamped {
 	ip?: string;
 
 	@Column({ type: "json", nullable: true })
-	tags: string[];
+	tags?: string[];
 
 	@Column({nullable: true, type: 'json'})
 	context?: string;

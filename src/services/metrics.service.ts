@@ -21,15 +21,14 @@ export class MetricService {
 
 	public async getSummary(apps: App[]) {
 		// this.initialize();
-		const ids = apps.map((app) => app.id).join(",");
+		const ids = apps.map((app) => app.id);
 
 		const query = Database.datasource!.createQueryRunner();
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
 		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
 
-		const sql = `SELECT m.level, sum(m.weight) weight FROM metrics m WHERE (m.createdAt BETWEEN ? AND ?) AND m.appId IN (?) GROUP BY m.level`;
+		const data = await query.query(`SELECT l.level, count(l.id) weight, l.appId, a.title app from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId IN (?) GROUP BY appId, level`, [before, date, ids]);
 
-		const data = await query.query(sql, [before, date, ids]);
 		return data;
 	}
 
@@ -38,8 +37,8 @@ export class MetricService {
 
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
 		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
-		const data: { level: string; weight: number }[] = await queryRunner.query(
-			"SELECT level, sum(weight) weight, max(createdAt) createdAt FROM metrics WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, createdAt ORDER BY createdAt DESC",
+		const data: { level: string; weight: number, createdAt: string }[] = await queryRunner.query(
+			"SELECT level, count(id) weight, max(createdAt) createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, createdAt ORDER BY createdAt DESC",
 			[before, date, appId]
 		);
 		return data;

@@ -1,5 +1,5 @@
 import { User } from "../typeorm/entities/User";
-import { Database } from "../lib/database";
+import { Cache, Database, Redis } from "../lib/database";
 import { FindManyOptions, MoreThanOrEqual, Repository } from "typeorm";
 import { compareSync, hashSync } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
@@ -85,6 +85,8 @@ export class UserService {
 						};
 					}
 
+					this.setUserSession(user);
+
 					return {
 						user: { ...user, password: undefined },
 						token: this.generateUserToken(user),
@@ -112,6 +114,29 @@ export class UserService {
 	async getUserById(id: string): Promise<UserType | null> {
 		await this.initialize();
 		return this.userRepository.findOne({ where: { id: parseInt(id) } });
+	}
+
+	async getUserSession(id: string) {
+		const client = Redis.getClient()!;
+
+		const data = await client.get(`user_sessions:${id}`);
+		if (data) {
+			return JSON.parse(data);
+		}
+	}
+
+	setUserSession(user: any) {
+		const client = Redis.getClient()!;
+
+		// Trying out callbacks to keep operations synchronous - might improve performance
+		user.password = undefined;
+		return client.set(`user_sessions:${user.id}`, JSON.stringify(user), "EX", 60 * 60 * 1000, (err, result) => {
+			if (err) {
+				console.error(err);
+			}
+
+			return result;
+		});
 	}
 
 	async enable2Fa(id: number, secret: string) {

@@ -4,7 +4,7 @@ import { RedisOptions } from "ioredis";
 const whiteList = process.env.ALLOWED_ORIGINS!.split(',');
 export const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV !== "production") {
       callback(null, true);
       return;
     }

@@ -27,7 +27,7 @@ export default function logsRouter() {
 				text: Joi.string().required(),
 				level: Joi.string().required(),
 				ip: Joi.string().optional(),
-				tags: Joi.array().optional(),
+				tags: Joi.array<string>().optional(),
 				context: Joi.object().optional(),
 			})
 		),

@@ -54,12 +54,12 @@ export class Cache {
 export class Redis implements CacheClient {
 	static client?: RedisType;
 
-	constructor() {
-		this.initialize();
-	}
+	// constructor() {
+	// 	this.initialize();
+	// }
 
-	initialize() {
-		if (!Redis.client) {
+	static initialize() {
+		if (!Redis.client || Redis.client.status != 'ready') {
 			Redis.client = new redis(defaultRedisConfig);
 			Redis.client.on("connect", () => debug("Redis client connected"));
 		}
@@ -67,7 +67,7 @@ export class Redis implements CacheClient {
 
 	async put(key: string, value: string | number | Buffer, expiry?: number) {
 		if (!Redis.client) {
-			this.initialize();
+			Redis.initialize();
 		}
 
 		if (expiry) {
@@ -79,5 +79,12 @@ export class Redis implements CacheClient {
 	async get(key: string): Promise<string | null> {
 		const val = Redis.client!.get(key);
 		return val;
+	}
+
+	static getClient() {
+		if (!Redis.client || Redis.client.status != 'ready') {
+			Redis.initialize();
+		}
+		return Redis.client;
 	}
 }

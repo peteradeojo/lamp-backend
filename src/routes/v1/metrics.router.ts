@@ -7,10 +7,15 @@ const metricService = new MetricService();
 const router = Router();
 export default function metricsRouter() {
 	router.get("/", async (req, res) => {
-		const apps = await appService.getUserApps((req.user as any).id);
-		const metrics = await metricService.getSummary(apps);
-
-		return res.json({ data: metrics });
+		try {
+			const apps = await appService.getUserApps((req.user as any).id);
+			const metrics = await metricService.getSummary(apps);
+	
+			return res.json({ data: metrics });
+		} catch (err: any) {
+			console.log(err.message);
+			return res.status(500).json({message: "An error occurred"});
+		} 
 	});
 
 	router.get("/:appId", async (req, res) => {

@@ -19,7 +19,7 @@ const passportConfig = (passport: PassportStatic) => {
 				const { id } = payload;
 				if (!id) return done(null, false);
 				try {
-					const user = await userService.getUserById(id);
+					const user = await userService.getUserSession(id);
 					if (user) {
 						// user.password = undefined;
 						return done(null, user);
