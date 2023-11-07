@@ -1,5 +1,5 @@
 import { Log, LogType } from "@entities/Log";
-import { FindOptionsWhere, Like, Repository } from "typeorm";
+import { FindOptionsWhere, In, Like, Repository } from "typeorm";
 import { Database } from "@lib/database";
 import { App } from "@entities/App";
 
@@ -19,6 +19,21 @@ export class LogService {
 
 	constructor() {
 		this.logsRepository = Database.datasource!?.getRepository(Log);
+	}
+
+	public async fetchLogs(ids: any[], userId: string|number, appId: string|number) {
+		await this.initialize();
+
+		console.log(userId);
+
+		try {
+			const query = `SELECT l.id, l.level, l.text, app.userId, l.appId FROM logs l INNER JOIN apps app on app.id = l.appId WHERE l.appId = ? and app.userId = ? and l.id in (?)`;
+	
+			return await this.logsRepository.query(query, [appId, userId, ids]);
+		} catch (err) {
+			console.error(err);
+			return [];
+		}
 	}
 
 	private async initialize() {
