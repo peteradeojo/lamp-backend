@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@fullerstack/nax-ipware": "^0.10.0",
+    "axios": "^1.6.1",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
@@ -63,8 +64,11 @@
     "build": "tsc",
     "start": "cross-env DEBUG=app,app:* node -r module-alias/register dist/index.js",
     "test": "jest",
+    "prod-setup": "DEBUG=app,app:* node -r module-alias/register",
     "dev-metrics": "DEBUG=app,app:* npm run dev-setup src/metric-collator.ts",
-    "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js"
+    "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js",
+    "seed-dev": "tsnd --respawn --transpile-only --rs --ignore-watch node_modules -r tsconfig-paths/register src/typeorm/seeder.ts",
+    "seed": "node -r module-alias/register dist/typeorm/seeder.js"
   },
   "engines": {
     "node": "^16"

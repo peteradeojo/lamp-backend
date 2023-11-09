@@ -6,6 +6,7 @@ import adminUserRouter from "./admin/users.router";
 import { validateQuerySchema, validateSchema } from "@middleware/ValidateSchema";
 import { AppService } from "@services/apps.service";
 import { UserService } from "@services/user.service";
+import paymentsRouter from "./admin/payments.router";
 
 const userService = new UserService();
 const appService = new AppService();
@@ -39,6 +40,8 @@ export default function adminRouter() {
 
 					return res.json({ data: result });
 				}
+
+				return res.status(400).json({});
 			} catch (err: any) {
 				debug(err);
 				return res.status(500).json({ message: err.message });
@@ -80,6 +83,8 @@ export default function adminRouter() {
 	);
 
 	router.use("/users", passport.authenticate("admin", { session: false }), adminUserRouter());
+
+	router.use("/payments", passport.authenticate("admin", { session: false }), paymentsRouter());
 
 	router.get("/analytics", passport.authenticate("admin", { session: false }), async (req, res) => {
 		const appCount = await appService.getNumberOfApps();

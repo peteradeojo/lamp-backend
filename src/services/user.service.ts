@@ -1,9 +1,11 @@
 import { User } from "../typeorm/entities/User";
 import { Cache, Database, Redis } from "../lib/database";
-import { FindManyOptions, MoreThanOrEqual, Repository } from "typeorm";
+import { FindManyOptions, MoreThanOrEqual, QueryRunner, Repository } from "typeorm";
 import { compareSync, hashSync } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import speakeasy from "speakeasy";
+import { Account } from "@entities/Account";
+import { Tier } from "@entities/Tier";
 
 const debug = require("debug")("app:UserService");
 
@@ -13,6 +15,9 @@ type UserType = Omit<User, "twoFactorEnabled"> & {
 
 export class UserService {
 	private userRepository: Repository<UserType>;
+	private accountRepository: Repository<Account>;
+	private tierRepository: Repository<Tier>;
+	private queryRunner: QueryRunner;
 
 	constructor() {
 		// if (!Database.datasource) {
@@ -20,11 +25,19 @@ export class UserService {
 		// }
 
 		this.userRepository = Database.datasource?.getRepository(User)!;
+		this.accountRepository = Database.datasource?.getRepository(Account)!;
+		this.tierRepository = Database.datasource?.getRepository(Tier)!;
 	}
 
 	private async initialize() {
 		if (!this.userRepository) {
 			this.userRepository = Database.datasource?.getRepository(User)!;
+		}
+		if (this.accountRepository) {
+			this.accountRepository = Database.datasource?.getRepository(Account)!;
+		}
+		if (this.tierRepository) {
+			this.tierRepository = Database.datasource?.getRepository(Tier)!;
 		}
 	}
 
@@ -61,6 +74,16 @@ export class UserService {
 		});
 	}
 
+	async updateUserTier(account: Account, tierName: string = "Free") {
+		const tier = await this.tierRepository.findOneBy({ name: tierName });
+		if (!tier) {
+			throw new Error(`Tier ${tierName} not found.`);
+		}
+
+		account.tier = tier;
+		return await this.accountRepository.save(account, { reload: true });
+	}
+
 	async authenticate(
 		email: string | UserType,
 		password?: string
@@ -75,9 +98,24 @@ export class UserService {
 			const user = await this.userRepository.findOne({
 				where: { email },
 				select: ["email", "password", "name", "isAdmin", "twoFactorSecret", "id"],
+				relations: {
+					account: {
+						tier: true,
+					},
+				},
 			});
 
 			if (user) {
+				if (user.isAdmin == false) {
+					if (!user.account) {
+						await this.createAccountForUser(user as any);
+					}
+	
+					if (!user.account.tier) {
+						user.account = await this.updateUserTier(user.account);
+					}
+				}
+
 				if (compareSync(password!, user.password!)) {
 					if (user.twoFactorSecret) {
 						return {
@@ -103,12 +141,29 @@ export class UserService {
 		};
 	}
 
-	async createUser(data: Pick<User | UserType, "email" | "name" | "password">): Promise<UserType> {
-		const user = this.userRepository.create(data);
+	async createAccountForUser(user: User) {
+		const tier = await this.tierRepository.findOneBy({ name: "Free" });
+		if (!tier) {
+			throw new Error("Free Tier not available.");
+		}
 
-		user.password = hashSync(data.password!, parseInt(process.env.SALT_ROUNDS! || "10"));
-		await this.userRepository.save(user);
-		return user;
+		await this.accountRepository.upsert({ user }, ["user"]);
+		const query = await this.queryRunner.query(
+			`UPDATE accounts set tierId = ${tier.id} WHERE userId = ${user.id}`
+		);
+	}
+
+	async createUser(data: Pick<User | UserType, "email" | "name" | "password">): Promise<UserType> {
+		return Database.datasource!.transaction(async (manager) => {
+			const user = this.userRepository.create(data);
+
+			user.password = hashSync(data.password!, parseInt(process.env.SALT_ROUNDS! || "10"));
+			const userProfile = await this.userRepository.save(user);
+
+			await this.createAccountForUser(userProfile as any);
+
+			return user;
+		});
 	}
 
 	async getUserById(id: string): Promise<UserType | null> {
@@ -130,13 +185,19 @@ export class UserService {
 
 		// Trying out callbacks to keep operations synchronous - might improve performance
 		user.password = undefined;
-		return client.set(`user_sessions:${user.id}`, JSON.stringify(user), "EX", 60 * 60 * 1000, (err, result) => {
-			if (err) {
-				console.error(err);
-			}
+		return client.set(
+			`user_sessions:${user.id}`,
+			JSON.stringify(user),
+			"EX",
+			60 * 60 * 1000,
+			(err, result) => {
+				if (err) {
+					console.error(err);
+				}
 
-			return result;
-		});
+				return result;
+			}
+		);
 	}
 
 	async enable2Fa(id: number, secret: string) {

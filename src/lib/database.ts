@@ -17,6 +17,11 @@ export class Database {
 		}
 	}
 
+	static async destroy() {
+		await Database.datasource?.destroy();
+		Database.datasource = undefined;
+	}
+
 	static getDatasource(): DataSource | null {
 		return Database.datasource || null;
 	}

@@ -2,10 +2,12 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	OneToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
 import { TimeStamped } from "./Timestamp";
+import { Account } from "./Account";
 
 @Entity({ name: "users" })
 export class User extends TimeStamped {
@@ -29,6 +31,9 @@ export class User extends TimeStamped {
 
 	@Column({ type: "varchar", nullable: true })
 	githubId?: string;
+
+	@OneToOne(() => Account, (account) => account.user)
+	account: Account;
 
 	get twoFactorEnabled(): boolean | undefined {
 		return !!this.twoFactorSecret;
