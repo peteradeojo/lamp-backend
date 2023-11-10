@@ -6,6 +6,7 @@ import { Log } from "./entities/Log";
 import { Metrics } from "@entities/Metrics";
 import { Account } from "@entities/Account";
 import { Tier } from "@entities/Tier";
+import { PaymentPlan } from "@entities/PaymentPlan";
 
 export const AppDataSource = new DataSource({
 	type: "mysql",
@@ -16,7 +17,7 @@ export const AppDataSource = new DataSource({
 	database: process.env.DATABASE,
 	synchronize: true,
 	logging: false,
-	entities: [User, App, Log, Metrics, Account, Tier],
+	entities: [User, App, Log, Metrics, Account, Tier, PaymentPlan],
 	cache: true,
 	migrations: [],
 	subscribers: [],

@@ -61,7 +61,13 @@ export class TierService {
 		return false;
 	}
 
-	async upgradeTier(data: {user: number|string, tier: number|string}) {
+	async upgradeTier(data: { user: number | string; tier: number | string }) {}
 
+	async updateTier(tier: Tier, data: any) {
+		
+	}
+
+	async saveTier(tier: Tier) {
+		await this.tierRepository.save(tier);
 	}
 }
