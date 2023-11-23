@@ -91,4 +91,9 @@ export class LogService {
 		await this.initialize();
 		await this.logsRepository.delete({ id: logId });
 	}
+
+	async deleteAllLogs() {
+		await this.initialize();
+		await this.logsRepository.delete({});
+	}
 }

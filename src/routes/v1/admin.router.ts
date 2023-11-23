@@ -7,12 +7,14 @@ import { validateQuerySchema, validateSchema } from "@middleware/ValidateSchema"
 import { AppService } from "@services/apps.service";
 import { UserService } from "@services/user.service";
 import paymentsRouter from "./admin/payments.router";
+import { LogService } from "@services/logs.service";
 
 const userService = new UserService();
 const appService = new AppService();
 const debug = require("debug")("app:admin-router");
 
 export default function adminRouter() {
+	const logService = new LogService();
 	const router = Router();
 
 	router.get("/auth", passport.authenticate("admin", { session: false }), (req, res) => {
@@ -101,6 +103,19 @@ export default function adminRouter() {
 			},
 		});
 	});
+
+	router.post(
+		"/red-button",
+		passport.authenticate("admin", { session: false }),
+		async (req, res) => {
+			try {
+				await logService.deleteAllLogs();
+				return res.json({ message: "Done" });
+			} catch (err: any) {
+				return res.status(500).send(err.message);
+			}
+		}
+	);
 
 	return router;
 }
