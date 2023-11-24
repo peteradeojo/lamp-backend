@@ -19,8 +19,16 @@ export class AppService {
 
 	async getUserApps(id: number) {
 		await this.initialize();
-		const apps = this.appRepository.query("SELECT app.id, app.title, (app.token IS NOT NULL) AS token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appId = app.id where app.userId = ? GROUP BY app.id", [id]);
-		return apps;
+		try {
+			const apps = this.appRepository.query(
+				"SELECT app.id, app.title, (app.token IS NOT NULL) AS token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appId = app.id where app.userId = ? GROUP BY app.id",
+				[id]
+			);
+			return apps;
+		} catch (err: any) {
+			console.error(err);
+			return [];
+		}
 	}
 
 	async createApp(userId: number, title: string) {

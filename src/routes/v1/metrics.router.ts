@@ -10,19 +10,24 @@ export default function metricsRouter() {
 		try {
 			const apps = await appService.getUserApps((req.user as any).id);
 			const metrics = await metricService.getSummary(apps);
-	
+
 			return res.json(metrics);
 		} catch (err: any) {
-			console.log(err.message);
-			return res.status(500).json({message: "An error occurred"});
-		} 
+			console.error(err.message);
+			return res.status(500).json({ message: "An error occurred" });
+		}
 	});
 
 	router.get("/:appId", async (req, res) => {
-		const { appId } = req.params;
-		const metrics = await metricService.getAppSummary(appId);
+		try {
+			const { appId } = req.params;
+			const metrics = await metricService.getAppSummary(appId);
 
-		return res.json({ data: metrics });
+			return res.json({ data: metrics });
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ error });
+		}
 	});
 
 	return router;
