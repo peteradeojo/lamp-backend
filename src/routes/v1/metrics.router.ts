@@ -11,7 +11,7 @@ export default function metricsRouter() {
 			const apps = await appService.getUserApps((req.user as any).id);
 			const metrics = await metricService.getSummary(apps);
 	
-			return res.json({ data: metrics });
+			return res.json(metrics);
 		} catch (err: any) {
 			console.log(err.message);
 			return res.status(500).json({message: "An error occurred"});

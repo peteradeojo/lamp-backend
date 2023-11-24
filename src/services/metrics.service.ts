@@ -27,7 +27,20 @@ export class MetricService {
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
 		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
 
-		const data = await query.query(`SELECT l.level, count(l.id) weight, l.appId, a.title app from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId IN (?) GROUP BY appId, level`, [before, date, ids]);
+		// const data = await query.query(`SELECT l.level, count(l.id) weight, l.appId, a.title app from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId IN (?) GROUP BY appId, level`, [before, date, ids]);
+
+		const data = await Promise.all(
+			apps.map(async (app) => {
+				return {
+					app: app.title,
+					appId: app.id,
+					data: await query.query(
+						`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId = ? GROUP BY appId, level`,
+						[before, date, app.id]
+					),
+				};
+			})
+		);
 
 		return data;
 	}
@@ -37,10 +50,12 @@ export class MetricService {
 
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
 		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
-		const data: { level: string; weight: number, createdAt: string }[] = await queryRunner.query(
-			"SELECT level, count(id) weight, max(createdAt) createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, createdAt ORDER BY createdAt DESC",
+		const data: { level: string; weight: number; createdAt: string }[] = await queryRunner.query(
+			"SELECT level, count(level) weight, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') ORDER BY createdAt",
 			[before, date, appId]
 		);
+
+		console.log(data.length);
 		return data;
 	}
 

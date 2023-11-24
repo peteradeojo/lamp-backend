@@ -78,7 +78,7 @@ export class LogService {
 			...logData,
 		});
 
-		await this.logsRepository.save(log);
+		this.logsRepository.save(log);
 		return log;
 	}
 

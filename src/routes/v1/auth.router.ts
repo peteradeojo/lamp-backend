@@ -22,7 +22,7 @@ export default function (): Router {
 		passport.authenticate("jwt", {
 			session: false,
 		}),
-		async (req, res) => {
+		(req, res) => {
 			return res.json({
 				data: { user: req.user },
 				message: "",
