@@ -75,10 +75,7 @@ export class Redis implements CacheClient {
 			Redis.initialize();
 		}
 
-		if (expiry) {
-			Redis.client!.setex(key, expiry, value);
-		}
-		Redis.client!.set(key, value);
+		Redis.client!.set(key, value, 'EX', expiry ? expiry : 60 * 10);
 	}
 
 	async get(key: string): Promise<string | null> {

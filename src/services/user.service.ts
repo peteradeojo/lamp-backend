@@ -189,7 +189,7 @@ export class UserService {
 			`user_sessions:${user.id}`,
 			JSON.stringify(user),
 			"EX",
-			60 * 60 * 1000,
+			60 * 60,
 			(err, result) => {
 				if (err) {
 					console.error(err);
