@@ -13,6 +13,7 @@
     "@types/node": "^20.4.8",
     "@types/node-cron": "^3.0.8",
     "@types/node-fetch": "2",
+    "@types/nodemailer": "^6.4.14",
     "@types/passport": "^1.0.12",
     "@types/passport-github2": "^1.2.5",
     "@types/passport-jwt": "^3.0.9",
@@ -48,6 +49,7 @@
     "mysql2": "^3.6.0",
     "node-cron": "^3.0.2",
     "node-fetch": "2",
+    "nodemailer": "^6.9.7",
     "passport": "^0.6.0",
     "passport-github2": "^0.1.12",
     "passport-jwt": "^4.0.1",
@@ -70,7 +72,8 @@
     "dev-metrics": "DEBUG=app,app:* npm run dev-setup src/metric-collator.ts",
     "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js",
     "seed-dev": "tsnd --respawn --transpile-only --rs --ignore-watch node_modules -r tsconfig-paths/register src/typeorm/seeder.ts",
-    "seed": "node -r module-alias/register dist/typeorm/seeder.js"
+    "seed": "node -r module-alias/register dist/typeorm/seeder.js",
+    "typeorm": "typeorm-ts-node-commonjs"
   },
   "engines": {
     "node": "^16"

@@ -11,6 +11,9 @@ import { PaymentService } from "@services/payments.service";
 import { TierService } from "@services/tier.service";
 import teamsRouter from "./teams.router";
 import RateLimiter from "@middleware/RateLimiter";
+import TeamService from "@services/teams.service";
+import { validateQuerySchema } from "@middleware/ValidateSchema";
+import Joi from "joi";
 
 const router = Router();
 
@@ -20,8 +23,18 @@ export const v1Router = () => {
 	router.use("/logs", logsRouter());
 	router.use("/admin", adminRouter());
 	router.use("/profile", passport.authenticate("jwt", { session: false }), profileRouter());
-	router.use("/metrics", RateLimiter(10), passport.authenticate("jwt", { session: false }), metricsRouter());
-	router.use("/teams", RateLimiter(10), passport.authenticate("jwt", { session: false }), teamsRouter());
+	router.use(
+		"/metrics",
+		RateLimiter(10),
+		passport.authenticate("jwt", { session: false }),
+		metricsRouter()
+	);
+	router.use(
+		"/teams",
+		RateLimiter(10),
+		passport.authenticate("jwt", { session: false }),
+		teamsRouter()
+	);
 
 	router.get("/tier-upgrade-callback/:id", async (req, res) => {
 		const paymentService = new PaymentService();
@@ -48,6 +61,22 @@ export const v1Router = () => {
 
 		return res.json({ message: "Hello" });
 	});
+
+	router.post(
+		"/accept-invite",
+		RateLimiter(10),
+		validateQuerySchema(
+			Joi.object({
+				token: Joi.string().uuid().required(),
+			})
+		),
+		async (req, res) => {
+			const { token } = req.query;
+			const teamService = new TeamService();
+
+			await teamService.acceptInvite(token as string);
+		}
+	);
 
 	return router;
 };

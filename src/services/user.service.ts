@@ -22,7 +22,7 @@ type UserType = Omit<User, "twoFactorEnabled"> & {
 	twoFactorEnabled?: boolean;
 };
 
-type AuthenticatedUser = Express.User & User;
+export type AuthenticatedUser = Express.User & User;
 
 export class UserService {
 	private userRepository: Repository<UserType>;
