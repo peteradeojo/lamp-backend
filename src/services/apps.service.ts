@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 
 export class AppService {
 	private appRepository: Repository<App>;
-	private repo = App;
 
 	constructor() {
 		this.appRepository = Database.datasource?.getRepository(App)!;
@@ -17,13 +16,23 @@ export class AppService {
 		}
 	}
 
-	async getUserApps(id: number) {
+	async getUserApps(id: number, teamId: number | undefined = undefined) {
 		await this.initialize();
 		try {
-			const apps = this.appRepository.query(
-				"SELECT app.id, app.title, (app.token IS NOT NULL) AS token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appId = app.id where app.userId = ? GROUP BY app.id",
-				[id]
-			);
+			let query =
+				"SELECT app.id, app.title, (app.token IS NOT NULL) AS token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appId = app.id ";
+			if (teamId) {
+				query += " RIGHT JOIN team_apps ta ON ta.appId = app.id";
+			}
+
+			query += " WHERE app.userId = ?"
+			if (teamId) {
+				query += " AND ta.teamId = ?"
+			}
+
+			query += " GROUP BY app.id";
+
+			const apps = this.appRepository.query(query, [id, teamId]);
 			return apps;
 		} catch (err: any) {
 			console.error(err);
@@ -83,5 +92,14 @@ export class AppService {
 		}
 
 		return await this.appRepository.count();
+	}
+
+	async addAppToTeam(app: number, team: number) {
+		return Database.datasource!.transaction(async (manager) => {
+			const query = "INSERT INTO team_apps (teamId, appId) VALUES (?, ?)";
+			const result = await manager.query(query, [team, app]);
+
+			return result;
+		});
 	}
 }

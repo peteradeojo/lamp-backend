@@ -2,12 +2,14 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	OneToMany,
 	OneToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from "typeorm";
 import { TimeStamped } from "./Timestamp";
 import { Account } from "./Account";
+import Team from "./Team";
 
 @Entity({ name: "users" })
 export class User extends TimeStamped {
@@ -34,6 +36,9 @@ export class User extends TimeStamped {
 
 	@OneToOne(() => Account, (account) => account.user)
 	account: Account;
+
+	@OneToMany(() => Team, (team) => team.owner)
+	teams: Team[]
 
 	get twoFactorEnabled(): boolean | undefined {
 		return !!this.twoFactorSecret;

@@ -3,23 +3,50 @@ import Joi from "joi";
 
 import { AppService } from "../../services/apps.service";
 import { User } from "../../typeorm/entities/User";
-import { validateSchema as validateBody } from "../../middleware/ValidateSchema";
-
-const debug = require("debug")("app:apps-router");
+import {
+	validateSchema as validateBody,
+	validateQuerySchema,
+} from "../../middleware/ValidateSchema";
+import { Database } from "@lib/database";
 
 const router = Router();
 
-const appService = new AppService();
-export default function appsRouter (): Router {
-	router.get("/", async (req, res) => {
-		try {
-			const apps = await appService.getUserApps((req.user as User).id);
+export default function appsRouter(): Router {
+	const appService = new AppService();
 
-			return res.json({ message: "", data: apps });
-		} catch (error: any) {
-			return res.json({ message: error.message, data: {} });
+	router.get(
+		"/",
+		validateQuerySchema(
+			Joi.object({
+				teamId: Joi.number().optional(),
+			})
+		),
+		async (req, res) => {
+			const { teamId } = req.query;
+
+			try {
+				if (teamId) {
+					const teams = await Database.datasource!.query(
+						"SELECT * FROM team_member WHERE userId = ? AND teamId = ?",
+						[req.user!.id, teamId]
+					);
+
+					if (teams.length < 1) {
+						return res.status(403).json({ message: "You no wise" });
+					}
+				}
+
+				const apps = await appService.getUserApps(
+					(req.user as User).id,
+					parseInt(teamId as string)
+				);
+
+				return res.json({ message: "", data: apps });
+			} catch (error: any) {
+				return res.json({ message: error.message, data: {} });
+			}
 		}
-	});
+	);
 
 	router.post(
 		"/",
@@ -31,9 +58,9 @@ export default function appsRouter (): Router {
 		async (req, res) => {
 			const { title } = req.body;
 			try {
-				const app = await appService.createApp((req.user as User).id, title);
+				const app = await appService.createApp(req.user!.id, title);
 
-				return res.json({ message: "", data: { app } });
+				return res.json({ message: "Success", data: { app } });
 			} catch (err: any) {
 				return res.status(500).json({ message: err.message });
 			}
@@ -81,6 +108,41 @@ export default function appsRouter (): Router {
 				return res.json({ message: "App updated successfully", data: { app } });
 			} catch (err: any) {
 				return res.json({ message: err.message });
+			}
+		}
+	);
+
+	router.post(
+		"/add-to-team",
+		validateBody(
+			Joi.object({
+				app: Joi.number().required(),
+				team: Joi.number().required(),
+			})
+		),
+		async (req, res) => {
+			const { app: appId, team: teamId } = req.body;
+
+			const app = await appService.getApp(appId);
+
+			if (!app) {
+				return res.status(400).json({ message: "Bad Request. Check if app id is valid." });
+			}
+
+			if (app.user.id != req.user!.id) {
+				return res.status(403).json({ message: "Forbidden" });
+			}
+
+			const team = await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
+			if (team.length < 1 || team[0].ownerId !== req.user!.id) {
+				return res.status(400).json({ message: "Bad Request. Please verify your input." });
+			}
+
+			try {
+				const response = await appService.addAppToTeam(app.id, team[0].id);
+				return res.json({ message: "Successful" });
+			} catch (error: any) {
+				return res.status(500).json({ message: "Something went wrong. " + error.message });
 			}
 		}
 	);

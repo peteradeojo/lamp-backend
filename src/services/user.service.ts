@@ -1,11 +1,20 @@
 import { User } from "../typeorm/entities/User";
 import { Cache, Database, Redis } from "../lib/database";
-import { FindManyOptions, MoreThanOrEqual, QueryRunner, Repository } from "typeorm";
+import {
+	ArrayContains,
+	FindManyOptions,
+	In,
+	MoreThanOrEqual,
+	QueryRunner,
+	Repository,
+} from "typeorm";
 import { compareSync, hashSync } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import speakeasy from "speakeasy";
 import { Account } from "@entities/Account";
 import { Tier } from "@entities/Tier";
+import Team from "@entities/Team";
+import TeamMember from "@entities/TeamMember";
 
 const debug = require("debug")("app:UserService");
 
@@ -13,11 +22,15 @@ type UserType = Omit<User, "twoFactorEnabled"> & {
 	twoFactorEnabled?: boolean;
 };
 
+type AuthenticatedUser = Express.User & User;
+
 export class UserService {
 	private userRepository: Repository<UserType>;
 	private accountRepository: Repository<Account>;
 	private tierRepository: Repository<Tier>;
 	private queryRunner: QueryRunner;
+	private teamsRepository: Repository<Team>;
+	private teamMemberRepo: Repository<TeamMember>;
 
 	constructor() {
 		// if (!Database.datasource) {
@@ -27,6 +40,8 @@ export class UserService {
 		this.userRepository = Database.datasource?.getRepository(User)!;
 		this.accountRepository = Database.datasource?.getRepository(Account)!;
 		this.tierRepository = Database.datasource?.getRepository(Tier)!;
+		this.teamsRepository = Database.datasource?.getRepository(Team)!;
+		this.teamMemberRepo = Database.datasource?.getRepository(TeamMember)!;
 	}
 
 	private async initialize() {
@@ -110,7 +125,7 @@ export class UserService {
 					if (!user.account) {
 						await this.createAccountForUser(user as any);
 					}
-	
+
 					if (!user.account.tier) {
 						user.account = await this.updateUserTier(user.account);
 					}
@@ -185,11 +200,13 @@ export class UserService {
 
 		// Trying out callbacks to keep operations synchronous - might improve performance
 		user.password = undefined;
+		const timeout = process.env.SESSION_TIMEOUT;
 		return client.set(
 			`user_sessions:${user.id}`,
 			JSON.stringify(user),
 			"EX",
-			60 * 60,
+			// Omo error-handling is a bitch
+			timeout ? (parseInt(timeout) ? parseInt(timeout) : 60 * 60) : 60 * 60,
 			(err, result) => {
 				if (err) {
 					console.error(err);
@@ -272,5 +289,53 @@ export class UserService {
 	async updateUser(user: any) {
 		await this.userRepository.save(user);
 		return user;
+	}
+
+	async getMyTeams(user: AuthenticatedUser) {
+		try {
+			const teams = await this.teamsRepository.find({
+				where: { owner: user as any },
+			});
+
+			return teams;
+		} catch (err) {
+			console.error(err);
+			return [];
+		}
+	}
+
+	async createTeam(user: AuthenticatedUser, data: { name: string }) {
+		try {
+			return Database.datasource!.transaction(async (manager) => {
+				const team = this.teamsRepository.create({
+					owner: user,
+					...data,
+				});
+
+				await this.teamsRepository.save(team);
+
+				const member = this.teamMemberRepo.create({
+					user: user,
+					team: team,
+				});
+				await this.teamMemberRepo.save(member);
+				return team;
+			});
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getParticipatingTeams(user: User) {
+		const teams = await this.teamsRepository.find({
+			relationLoadStrategy: "join",
+			where: {
+				members: {
+					user: user as any,
+				},
+			},
+		});
+		return teams;
 	}
 }

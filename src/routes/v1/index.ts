@@ -9,6 +9,8 @@ import profileRouter from "./profile.router";
 import metricsRouter from "./metrics.router";
 import { PaymentService } from "@services/payments.service";
 import { TierService } from "@services/tier.service";
+import teamsRouter from "./teams.router";
+import RateLimiter from "@middleware/RateLimiter";
 
 const router = Router();
 
@@ -18,7 +20,8 @@ export const v1Router = () => {
 	router.use("/logs", logsRouter());
 	router.use("/admin", adminRouter());
 	router.use("/profile", passport.authenticate("jwt", { session: false }), profileRouter());
-	router.use("/metrics", passport.authenticate("jwt", { session: false }), metricsRouter());
+	router.use("/metrics", RateLimiter(10), passport.authenticate("jwt", { session: false }), metricsRouter());
+	router.use("/teams", RateLimiter(10), passport.authenticate("jwt", { session: false }), teamsRouter());
 
 	router.get("/tier-upgrade-callback/:id", async (req, res) => {
 		const paymentService = new PaymentService();

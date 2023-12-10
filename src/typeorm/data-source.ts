@@ -7,6 +7,9 @@ import { Metrics } from "@entities/Metrics";
 import { Account } from "@entities/Account";
 import { Tier } from "@entities/Tier";
 import { PaymentPlan } from "@entities/PaymentPlan";
+import Team from "@entities/Team";
+import TeamMember from "@entities/TeamMember";
+import AppTeam from "@entities/AppTeam";
 
 export const AppDataSource = new DataSource({
 	type: "mysql",
@@ -17,7 +20,7 @@ export const AppDataSource = new DataSource({
 	database: process.env.DATABASE,
 	synchronize: true,
 	logging: false,
-	entities: [User, App, Log, Metrics, Account, Tier, PaymentPlan],
+	entities: [User, App, Log, Metrics, Account, Tier, PaymentPlan, Team, TeamMember, AppTeam],
 	cache: true,
 	migrations: [],
 	subscribers: [],

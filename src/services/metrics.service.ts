@@ -73,7 +73,6 @@ export class MetricService {
 			[before, date, appId]
 		);
 
-		console.log(data.length);
 		return data;
 	}
 
