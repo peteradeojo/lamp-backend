@@ -12,14 +12,13 @@ import { UserService } from "./user.service";
 export default class TeamService {
 	private teamRepository: Repository<Team>;
 	private memberRepository: Repository<TeamMember>;
-	private appRepository: Repository<AppTeam>;
-	private mailer: Mailer;
+	// private appRepository: Repository<AppTeam>;
 
 	constructor() {
 		this.teamRepository = Database.datasource!.getRepository(Team);
 		this.memberRepository = Database.datasource!.getRepository(TeamMember);
-		this.appRepository = Database.datasource!.getRepository(AppTeam);
-		this.mailer = new Mailer();
+		// this.appRepository = Database.datasource!.getRepository(AppTeam);
+		// this.mailer = new Mailer();
 	}
 
 	async getTeams(owner: User) {
@@ -68,7 +67,7 @@ export default class TeamService {
 			link += `&new`;
 		}
 
-		return await this.mailer.send(
+		return await Mailer.send(
 			email,
 			`<p>You've been invited to join <b>${team.name}</b> on LAAS. Click <a href='${link}'>here</a> to join or ignore this e-mail. This invite will expire in 30 minutes.</p>`,
 			"You've been invited."
