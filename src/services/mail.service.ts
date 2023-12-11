@@ -25,7 +25,7 @@ export default class Mailer {
 		try {
 			const info = await this.transport.sendMail({
 				to,
-        from: process.env.SMTP_USER,
+        from: `${process.env.SMTP_USER}`,
         subject,
 				html: message,
 			});

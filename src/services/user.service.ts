@@ -170,6 +170,7 @@ export class UserService {
 
 	async createUser(data: Pick<User | UserType, "email" | "name" | "password">): Promise<UserType> {
 		return Database.datasource!.transaction(async (manager) => {
+			console.log(data);
 			const user = this.userRepository.create(data);
 
 			user.password = hashSync(data.password!, parseInt(process.env.SALT_ROUNDS! || "10"));

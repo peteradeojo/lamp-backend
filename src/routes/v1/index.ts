@@ -12,7 +12,7 @@ import { TierService } from "@services/tier.service";
 import teamsRouter from "./teams.router";
 import RateLimiter from "@middleware/RateLimiter";
 import TeamService from "@services/teams.service";
-import { validateQuerySchema } from "@middleware/ValidateSchema";
+import { validateQuerySchema, validateSchema } from "@middleware/ValidateSchema";
 import Joi from "joi";
 
 const router = Router();
@@ -68,13 +68,20 @@ export const v1Router = () => {
 		validateQuerySchema(
 			Joi.object({
 				token: Joi.string().uuid().required(),
+				email: Joi.string().email().required(),
+				new: Joi.optional(),
+			})
+		),
+		validateSchema(
+			Joi.object({
+				password: Joi.string().min(8).max(16).optional(),
+				password_confirmation: Joi.string().optional().valid(Joi.ref("password")),
 			})
 		),
 		async (req, res) => {
-			const { token } = req.query;
 			const teamService = new TeamService();
-
-			await teamService.acceptInvite(token as string);
+			const { data, status } = await teamService.acceptInvite(req);
+			return res.status(status).json(data);
 		}
 	);
 

@@ -1,6 +1,6 @@
 import Team from "@entities/Team";
 import { Database } from "@lib/database";
-import { validateSchema } from "@middleware/ValidateSchema";
+import { validateParamsSchema, validateSchema } from "@middleware/ValidateSchema";
 import TeamService from "@services/teams.service";
 import { UserService } from "@services/user.service";
 import { Router } from "express";
@@ -21,6 +21,18 @@ export default () => {
 			return res.json(data);
 		}
 	});
+	router.get(
+		"/:id/show",
+		validateParamsSchema(
+			Joi.object({
+				id: Joi.number().required(),
+			})
+		),
+		async (req, res) => {
+			const data = await teamService.getTeam(Number(req.params.id));
+			return res.json(data);
+		}
+	);
 
 	router.post(
 		"/new",
@@ -57,21 +69,17 @@ export default () => {
 			}
 
 			const user = await userService.getUser({ where: { email } });
-			const options: any = {};
-
-			// Set options
-			if (user) {
-				options.existingUser = true;
-			}
 
 			// Check if user is already a member of this team
 			const team = await teamService.getTeam(teams[0].id);
-			const isMember = team!.members.find((member, index) => member.user.id == user!.id);
+			const isMember = team!.members.find((member, index) => member.user.id == user?.id);
 			if (isMember) {
 				return res.status(400).json({ message: "Already a member." });
 			}
 
-			teamService.sendTeamInvite(team!, req.body.email, options);
+			teamService.sendTeamInvite(team!, req.body.email, {
+				existingUser: Boolean(isMember),
+			});
 			return res.json({
 				message: "Invite sent",
 			});

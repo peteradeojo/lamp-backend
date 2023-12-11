@@ -6,6 +6,8 @@ import { Database, Redis } from "@lib/database";
 import { Repository } from "typeorm";
 import Mailer from "./mail.service";
 import { randomUUID } from "crypto";
+import { Request } from "express";
+import { UserService } from "./user.service";
 
 export default class TeamService {
 	private teamRepository: Repository<Team>;
@@ -25,7 +27,6 @@ export default class TeamService {
 	}
 
 	async getTeam(teamId: number) {
-		console.log(teamId);
 		return await this.teamRepository.findOne({
 			where: { id: teamId },
 			// loadRelationIds: {
@@ -74,5 +75,94 @@ export default class TeamService {
 		);
 	}
 
-	async acceptInvite(token: string) {}
+	async acceptInvite(req: Request) {
+		const { token, email } = req.query;
+
+		let isNew = "new" in req.query;
+
+		if (isNew) {
+			const passwordsPresent = "password" in req.body && "password_confirmation" in req.body;
+
+			if (!passwordsPresent)
+				return {
+					status: 400,
+					data: {
+						message: "Password required",
+					},
+				};
+		}
+
+		const userService = new UserService();
+
+		try {
+			const redis = Redis.getClient()!;
+			const cacheKey = `teams:invite-to-${token}-email-${email}`;
+			let data = await redis.get(cacheKey);
+
+			if (!data) {
+				return {
+					status: 404,
+					data: {
+						message: "Invite not found.",
+					},
+				};
+			}
+
+			const invite = JSON.parse(data);
+			const team = await this.getTeam(invite!.teamId);
+
+			if (!team) {
+				return { status: 400, data: { message: "Malformed invite." } };
+			}
+
+			let user = await userService.getUser({ where: { email: email as string } });
+			if (user) isNew = false;
+
+			if (!user) {
+				const { password } = req.body;
+				user = await userService.createUser({
+					email: email as string,
+					name: "John doe",
+					password,
+				});
+			}
+
+			const isAlreadyMember = team.members.find((m, index) => m.user.id == user?.id);
+
+			if (isAlreadyMember) {
+				redis.del(cacheKey);
+				return { data: { message: "Invite expired." }, status: 401 };
+			}
+
+			const tMember = this.memberRepository.create({
+				team: team,
+				user: user,
+			});
+
+			await this.memberRepository.save(tMember);
+
+			const auth = await userService.authenticate(user);
+
+			redis.del(cacheKey);
+
+			return {
+				data: {
+					message:
+						"Invite accepted successfully. " +
+						(isNew ? "Please set your password to continue." : ""),
+					next: isNew ? "set_password" : undefined,
+					auth,
+				},
+				status: 201,
+			};
+		} catch (error: any) {
+			console.error(error);
+			return {
+				data: {
+					message: error.message,
+				},
+				status: 500,
+			};
+		}
+	}
 }
