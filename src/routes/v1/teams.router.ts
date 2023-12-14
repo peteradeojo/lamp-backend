@@ -72,13 +72,13 @@ export default () => {
 
 			// Check if user is already a member of this team
 			const team = await teamService.getTeam(teams[0].id);
-			const isMember = team!.members.find((member, index) => member.user.id == user?.id);
+			const isMember = team!.members.find((member: any, index: number) => member.userId == user?.id);
 			if (isMember) {
 				return res.status(400).json({ message: "Already a member." });
 			}
 
-			teamService.sendTeamInvite(team!, req.body.email, {
-				existingUser: Boolean(isMember),
+			await teamService.sendTeamInvite(team!, req.body.email, {
+				existingUser: Boolean(user),
 			});
 			return res.json({
 				message: "Invite sent",

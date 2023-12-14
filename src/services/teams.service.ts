@@ -1,9 +1,8 @@
-import AppTeam from "@entities/AppTeam";
 import Team from "@entities/Team";
 import TeamMember from "@entities/TeamMember";
 import { User } from "@entities/User";
 import { Database, Redis } from "@lib/database";
-import { Repository } from "typeorm";
+import { Repository, SelectQueryBuilder } from "typeorm";
 import Mailer from "./mail.service";
 import { randomUUID } from "crypto";
 import { Request } from "express";
@@ -13,10 +12,12 @@ export default class TeamService {
 	private teamRepository: Repository<Team>;
 	private memberRepository: Repository<TeamMember>;
 	// private appRepository: Repository<AppTeam>;
+	private redis;
 
 	constructor() {
 		this.teamRepository = Database.datasource!.getRepository(Team);
 		this.memberRepository = Database.datasource!.getRepository(TeamMember);
+		this.redis = Redis.getClient();
 		// this.appRepository = Database.datasource!.getRepository(AppTeam);
 		// this.mailer = new Mailer();
 	}
@@ -26,17 +27,22 @@ export default class TeamService {
 	}
 
 	async getTeam(teamId: number) {
-		return await this.teamRepository.findOne({
-			where: { id: teamId },
-			// loadRelationIds: {
-			// 	relations: ["members"]
-			// },
-			relations: {
-				members: {
-					user: true,
-				},
-			},
-		});
+		const query = `SELECT team.*, JSON_ARRAYAGG(
+			JSON_OBJECT(
+				'id', tm.id,
+				'teamId', tm.teamId,
+				'name', u.name,
+				'email', u.email,
+				'userId', u.id
+			)
+		) as members FROM teams team 
+		LEFT JOIN team_member tm ON tm.teamId = team.id
+		INNER JOIN users u ON tm.userId = u.id
+		WHERE team.id = ?`;
+
+		const data = await this.teamRepository.query(query, [teamId]);
+		if (data.length < 1) return {};
+		return data[0];
 	}
 
 	async sendTeamInvite(
@@ -46,32 +52,38 @@ export default class TeamService {
 			existingUser: false,
 		}
 	) {
-		const token = randomUUID({
-			disableEntropyCache: true,
-		});
+		try {
+			const token = randomUUID({
+				disableEntropyCache: true,
+			});
 
-		const redis = Redis.getClient()!;
+			const redis = Redis.getClient()!;
 
-		redis.setex(
-			`teams:invite-to-${token}-email-${email}`,
-			60 * 30,
-			JSON.stringify({
+			redis.setex(
+				`teams:invite-to-${token}-email-${email}`,
+				60 * 30,
+				JSON.stringify({
+					email,
+					teamId: team.id,
+				})
+			);
+
+			let link = `${
+				process.env.NODE_ENV == "production" ? "https://lags.vercel.app" : "http://localhost:5173"
+			}/accept-invite/?token=${token}&email=${email}`;
+
+			if (options.existingUser == false) {
+				link += `&new`;
+			}
+
+			return await Mailer.send(
 				email,
-				teamId: team.id,
-			})
-		);
-
-		let link = `https://lags.vercel.app/accept-invite/?token=${token}&email=${email}`;
-
-		if (options.existingUser == false) {
-			link += `&new`;
+				`<p>You've been invited to join <b>${team.name}</b> on LAAS. Click <a href='${link}'>here</a> to join or ignore this e-mail. This invite will expire in 30 minutes.</p>`,
+				"You've been invited."
+			);
+		} catch (err) {
+			console.error(err);
 		}
-
-		return await Mailer.send(
-			email,
-			`<p>You've been invited to join <b>${team.name}</b> on LAAS. Click <a href='${link}'>here</a> to join or ignore this e-mail. This invite will expire in 30 minutes.</p>`,
-			"You've been invited."
-		);
 	}
 
 	async acceptInvite(req: Request) {
@@ -126,7 +138,7 @@ export default class TeamService {
 				});
 			}
 
-			const isAlreadyMember = team.members.find((m, index) => m.user.id == user?.id);
+			const isAlreadyMember = team.members.find((m: any, index: any) => m.userId == user?.id);
 
 			if (isAlreadyMember) {
 				redis.del(cacheKey);
