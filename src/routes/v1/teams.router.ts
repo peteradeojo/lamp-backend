@@ -17,7 +17,7 @@ export default () => {
 			const data = await teamService.getTeams(req.user!);
 			return res.json(data);
 		} else {
-			const data = await userService.getParticipatingTeams(req.user!);
+			const data = await teamService.getParticipatingTeams(req.user!);
 			return res.json(data);
 		}
 	});

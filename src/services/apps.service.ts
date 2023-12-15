@@ -1,13 +1,17 @@
-import { Repository } from "typeorm";
+import { FindOptions, FindOptionsWhere, Repository } from "typeorm";
 import { Database } from "../lib/database";
 import { App } from "../typeorm/entities/App";
 import { v4 as uuid } from "uuid";
+import TeamService from "./teams.service";
+import { User } from "@entities/User";
 
 export class AppService {
 	private appRepository: Repository<App>;
+	private teamService: TeamService;
 
 	constructor() {
 		this.appRepository = Database.datasource?.getRepository(App)!;
+		this.teamService = new TeamService();
 	}
 
 	private async initialize() {
@@ -25,9 +29,9 @@ export class AppService {
 				query += " RIGHT JOIN team_apps ta ON ta.appId = app.id";
 			}
 
-			query += " WHERE app.userId = ?"
+			query += " WHERE app.userId = ?";
 			if (teamId) {
-				query += " AND ta.teamId = ?"
+				query += " AND ta.teamId = ?";
 			}
 
 			query += " GROUP BY app.id";
@@ -101,5 +105,29 @@ export class AppService {
 
 			return result;
 		});
+	}
+
+	async getApps(where: FindOptionsWhere<App>) {
+		return await this.appRepository.find({ where });
+	}
+
+	async canUseApp(appId: number, user: User) {
+		const records = await this.appRepository.query(
+			`
+			SELECT a.* FROM apps a 
+			JOIN team_apps ta ON ta.appId = a.id
+			JOIN team_member tm ON tm.teamId = ta.teamId AND tm.userId = ?
+			WHERE a.id = ?
+		`,
+			[user.id, appId]
+		);
+
+		if (records.length > 0) {
+			// const app = records[0];
+			return true;
+		}
+
+		// console.log(records);
+		return false;
 	}
 }

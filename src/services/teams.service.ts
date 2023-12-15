@@ -2,7 +2,7 @@ import Team from "@entities/Team";
 import TeamMember from "@entities/TeamMember";
 import { User } from "@entities/User";
 import { Database, Redis } from "@lib/database";
-import { Repository, SelectQueryBuilder } from "typeorm";
+import { In, Repository, SelectQueryBuilder } from "typeorm";
 import Mailer from "./mail.service";
 import { randomUUID } from "crypto";
 import { Request } from "express";
@@ -175,5 +175,43 @@ export default class TeamService {
 				status: 500,
 			};
 		}
+	}
+
+	async getTeamApps(teamId: number) {
+		const cacheKey = `team:${teamId}:apps`;
+		let apps: any = await this.redis?.get(cacheKey);
+
+		if (apps == null || apps == undefined) {
+			const data = await this.teamRepository.query(
+				"SELECT appId FROM team_apps ta WHERE teamId = ?",
+				[teamId]
+			);
+
+			await this.redis!.setex(cacheKey, 60 * 5, JSON.stringify(data));
+			return data.map((a: any) => a.appId);
+		}
+
+		apps = JSON.parse(apps);
+		return apps!.map((a: any) => a.appId);
+	}
+
+	async getAppTeam(appId: number) {
+		const team = await this.teamRepository.query("SELECT teamId FROM team_apps WHERE appId = ?", [
+			appId,
+		]);
+
+		return team;
+	}
+
+	async getParticipatingTeams(user: User) {
+		const teams = await this.teamRepository.find({
+			relationLoadStrategy: "join",
+			where: {
+				members: {
+					user: user as any,
+				},
+			},
+		});
+		return teams;
 	}
 }

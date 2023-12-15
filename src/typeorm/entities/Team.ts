@@ -10,6 +10,7 @@ import {
 import { TimeStamped } from "./Timestamp";
 import { User } from "./User";
 import TeamMember from "./TeamMember";
+import AppTeam from "./AppTeam";
 
 @Entity({
 	name: "teams",
@@ -25,6 +26,9 @@ class Team extends TimeStamped {
 	@OneToMany(() => TeamMember, (member) => member.team)
 	members: TeamMember[];
 
+	@OneToMany(() => AppTeam, (app) => app.team)
+	apps: AppTeam[];
+	
 	@Column({
 		type: "varchar",
 		nullable: false,

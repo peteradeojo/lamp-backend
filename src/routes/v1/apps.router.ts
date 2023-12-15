@@ -8,11 +8,14 @@ import {
 	validateQuerySchema,
 } from "../../middleware/ValidateSchema";
 import { Database } from "@lib/database";
+import TeamService from "@services/teams.service";
+import { In } from "typeorm";
 
 const router = Router();
 
 export default function appsRouter(): Router {
 	const appService = new AppService();
+	const teamService = new TeamService();
 
 	router.get(
 		"/",
@@ -34,6 +37,10 @@ export default function appsRouter(): Router {
 					if (teams.length < 1) {
 						return res.status(403).json({ message: "You no wise" });
 					}
+
+					const appIds = await teamService.getTeamApps(Number(teamId));
+					const apps = await appService.getApps({ id: In(appIds) });
+					return res.json({ data: apps, message: "Apps fetched successfully." });
 				}
 
 				const apps = await appService.getUserApps(
@@ -72,7 +79,11 @@ export default function appsRouter(): Router {
 		try {
 			const app = await appService.getApp(parseInt(id));
 
-			if (app && app.user.id !== (req.user as User).id) {
+			const canView = await appService.canUseApp(Number(id), req.user!)
+			if (!app) {
+				return res.status(404).json({ message: "App `id` invalid", data: {} });
+			}
+			if (app.user.id !== (req.user as User).id && !canView) {
 				return res.status(403).json({ message: "Forbidden", data: {} });
 			}
 
@@ -135,7 +146,7 @@ export default function appsRouter(): Router {
 
 			const team = await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
 			if (team.length < 1 || team[0].ownerId !== req.user!.id) {
-				return res.status(400).json({ message: "Bad Request. Please verify your input." });
+				return res.status(400).json({ message: "Forbidden" });
 			}
 
 			try {
