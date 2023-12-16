@@ -11,9 +11,9 @@ if (process.env.NODE_ENV == "development") {
 const debug = require("debug")("app:collator");
 
 import { Database } from "@lib/database";
-import { MetricDataSource } from "./typeorm/data-source";
 import { Metrics } from "@entities/Metrics";
 import { EntityManager, QueryRunner } from "typeorm";
+import { AppDataSource } from "typeorm/data-source";
 
 const minuteInterval = process.env.MINUTE_INTERVAL ? parseInt(process.env.MINUTE_INTERVAL) : 30;
 
@@ -41,7 +41,7 @@ const collate = async (queryRunner: QueryRunner, metricManager: EntityManager, m
 
 (async () => {
 	try {
-		await Database.initialize(MetricDataSource);
+		await Database.initialize(AppDataSource);
 
 		const queryRunner = Database.getDatasource()!.createQueryRunner();
 		const metricManager = Database.datasource!.manager;

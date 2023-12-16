@@ -7,7 +7,6 @@ const debug = (str: any) => {
 import { Database } from "@lib/database";
 import { AppDataSource } from "./data-source";
 import { DataSource, Repository } from "typeorm";
-import { Tier } from "@entities/Tier";
 
 const tiers = [
 	{
@@ -31,8 +30,6 @@ const tiers = [
 ];
 
 const tierSeeder = async (datasource: DataSource) => {
-	const tierRepository: Repository<Tier> = datasource.getRepository(Tier);
-
 	// const tierData = tierRepository.create(tiers as any)
 	// await tierRepository.upsert(tierData, {
 	// 	conflictPaths: {
