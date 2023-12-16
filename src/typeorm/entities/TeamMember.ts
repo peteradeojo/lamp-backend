@@ -1,4 +1,4 @@
-import { Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { TimeStamped } from "./Timestamp";
 import { User } from "./User";
 import Team from "./Team";
@@ -16,6 +16,12 @@ class TeamMember extends TimeStamped {
 	@ManyToOne(() => Team)
 	@JoinColumn()
 	team: Team;
+
+	@Column({
+		type: 'smallint',
+		default: 0,
+	})
+	status: number;
 }
 
 export default TeamMember;

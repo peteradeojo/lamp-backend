@@ -10,8 +10,11 @@ export class Database {
 	static async initialize(datasource: DataSource) {
     try {
 			await datasource.initialize();
+			debug("Data source initialized");
+			if (datasource.isInitialized) {
+				await datasource.synchronize();
+			} 
       Database.datasource = datasource;
-      debug("Data source initialized");
 		} catch (err) {
 			debug(err);
 		}

@@ -73,7 +73,7 @@
     "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js",
     "seed-dev": "tsnd --respawn --transpile-only --rs --ignore-watch node_modules -r tsconfig-paths/register src/typeorm/seeder.ts",
     "seed": "node -r module-alias/register dist/typeorm/seeder.js",
-    "typeorm": "typeorm-ts-node-commonjs"
+    "typeorm": "typeorm-ts-node-commonjs -d src/typeorm/data-source.ts"
   },
   "engines": {
     "node": "^16"
