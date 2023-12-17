@@ -11,18 +11,20 @@ import AppTeam from "./entities/AppTeam";
 import { readFileSync } from "fs";
 import path from "path";
 
+console.log(readFileSync(process.env.MYSQL_CA!));
 export default {
 	type: (process.env.DATABASE_TYPE as any) || "mysql",
-	ssl: process.env.APP_ENV == "production" ? ({
-		ca: readFileSync(process.env.MYSQL_CA || "/etc/ssl/cert.pem"),
-	}) : undefined,
+	ssl:
+		process.env.APP_ENV == "production"
+			? {
+					ca: readFileSync(process.env.MYSQL_CA || "/etc/ssl/cert.pem"),
+			  }
+			: undefined,
 	url: process.env.DATABASE_URL,
 	synchronize: process.env.APP_ENV == "production" ? false : true,
 	logging: false,
 	entities: [User, App, Log, Metrics, Account, Tier, PaymentPlan, Team, TeamMember, AppTeam],
 	cache: true,
-	migrations: [
-    path.join(__dirname, "migrations/*.ts")
-  ],
+	migrations: [path.join(__dirname, "migrations/*.ts")],
 	subscribers: [],
 };
