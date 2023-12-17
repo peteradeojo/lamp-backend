@@ -10,8 +10,10 @@ import TeamMember from "./entities/TeamMember";
 import AppTeam from "./entities/AppTeam";
 import { readFileSync } from "fs";
 import path from "path";
+import { exec } from "child_process";
 
-console.log(readFileSync(process.env.MYSQL_CA!));
+// console.log(readFileSync(process.env.MYSQL_CA!));
+console.log(exec("find /etc/ -name *.pem"));
 export default {
 	type: (process.env.DATABASE_TYPE as any) || "mysql",
 	ssl:
