@@ -32,6 +32,7 @@ export default class Server {
 			Server.app.use(require("morgan")("dev"));
 		}
 
+		Server.app.set('trust proxy', true);
 		Server.app.use(cors(corsOptions));
 		Server.app.use(helmet());
 		Server.app.use(express.json());
