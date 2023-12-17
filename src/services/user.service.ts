@@ -281,6 +281,8 @@ export class UserService {
 	}
 
 	authenticateGithub(user: User) {
+		this.setUserSession(user);
+
 		return {
 			user,
 			token: this.generateUserToken(user!),
