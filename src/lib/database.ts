@@ -11,9 +11,9 @@ export class Database {
     try {
 			await datasource.initialize();
 			debug("Data source initialized");
-			if (datasource.isInitialized) {
-				await datasource.synchronize();
-			} 
+			// if (datasource.isInitialized) {
+			// 	await datasource.synchronize();
+			// } 
       Database.datasource = datasource;
 		} catch (err) {
 			debug(err);

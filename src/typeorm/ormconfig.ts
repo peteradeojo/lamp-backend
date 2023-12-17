@@ -12,24 +12,15 @@ import { readFileSync } from "fs";
 import path from "path";
 import { exec } from "child_process";
 
-// console.log(readFileSync(process.env.MYSQL_CA!));
-exec("find /etc/ -name *.pem", (err, stdout, stderr) => {
-	if (err) {
-		console.error(err);
-		return;
-	}
-
-	console.log(stdout);
-	console.error(stderr);
-});
 export default {
 	type: (process.env.DATABASE_TYPE as any) || "mysql",
-	ssl:
-		process.env.APP_ENV == "production"
-			? {
-					ca: readFileSync(process.env.MYSQL_CA || "/etc/ssl/cert.pem"),
-			  }
-			: undefined,
+	// ssl:
+	// 	process.env.APP_ENV == "production"
+	// 		? {
+	// 				ca: readFileSync(process.env.MYSQL_CA || "/etc/ssl/cert.pem"),
+	// 		  }
+	// 		: undefined,
+	ssl: {},
 	url: process.env.DATABASE_URL,
 	synchronize: process.env.APP_ENV == "production" ? false : true,
 	logging: false,
