@@ -215,10 +215,11 @@ export default function (): Router {
 				user = await userService.updateUser(user);
 			}
 
-			const result = userService.authenticateGithub(user as any);
+			// const result = userService.authenticateGithub(user as any);
 
 			return res.json(userService.authenticateGithub(user as any));
 		} catch (err: any) {
+			console.error(err);
 			return res.status(500).json({
 				message: err.message,
 			});
