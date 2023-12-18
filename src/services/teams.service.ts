@@ -37,6 +37,8 @@ export default class TeamService {
 			)
 		) as members FROM teams team 
 		LEFT JOIN team_member tm ON tm.teamId = team.id
+		-- LEFT JOIN team_apps ta ON team.id = ta.teamId
+		-- LEFT JOIN apps app ON ta.appId = app.id AND app.token IS NOT NULL
 		INNER JOIN users u ON tm.userId = u.id
 		WHERE team.id = ?`;
 
@@ -177,9 +179,20 @@ export default class TeamService {
 		}
 	}
 
-	async getTeamApps(teamId: number) {
+	async getTeamApps(teamId: number, full = false) {
 		const cacheKey = `team:${teamId}:apps`;
 		let apps: any = await this.redis?.get(cacheKey);
+
+		if (full) {
+			const data = await this.teamRepository.query(
+				`SELECT app.id, app.title, app.token, app.createdAt FROM team_apps ta
+				JOIN apps app ON ta.appId = app.id 
+			WHERE ta.teamId = ?`,
+				[teamId]
+			);
+
+			return data;
+		}
 
 		if (apps == null || apps == undefined) {
 			const data = await this.teamRepository.query(

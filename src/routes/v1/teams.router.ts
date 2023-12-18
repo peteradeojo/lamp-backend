@@ -34,6 +34,19 @@ export default () => {
 		}
 	);
 
+	router.get(
+		"/:id/apps",
+		validateParamsSchema(
+			Joi.object({
+				id: Joi.number().required(),
+			})
+		),
+		async (req, res) => {
+			const data = await teamService.getTeamApps(Number(req.params.id), true);
+			return res.json(data);
+		}
+	);
+
 	router.post(
 		"/new",
 		validateSchema(
@@ -72,7 +85,9 @@ export default () => {
 
 			// Check if user is already a member of this team
 			const team = await teamService.getTeam(teams[0].id);
-			const isMember = team!.members.find((member: any, index: number) => member.userId == user?.id);
+			const isMember = team!.members.find(
+				(member: any, index: number) => member.userId == user?.id
+			);
 			if (isMember) {
 				return res.status(400).json({ message: "Already a member." });
 			}

@@ -31,7 +31,7 @@ export const v1Router = () => {
 	);
 	router.use(
 		"/teams",
-		RateLimiter(10),
+		RateLimiter(30),
 		passport.authenticate("jwt", { session: false }),
 		teamsRouter()
 	);

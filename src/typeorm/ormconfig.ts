@@ -14,13 +14,8 @@ import { exec } from "child_process";
 
 export default {
 	type: (process.env.DATABASE_TYPE as any) || "mysql",
-	// ssl:
-	// 	process.env.APP_ENV == "production"
-	// 		? {
-	// 				ca: readFileSync(process.env.MYSQL_CA || "/etc/ssl/cert.pem"),
-	// 		  }
-	// 		: undefined,
-	ssl: {},
+	ssl: process.env.APP_ENV == "production" ? {} : undefined,
+	// ssl: {},
 	url: process.env.DATABASE_URL,
 	synchronize: process.env.APP_ENV == "production" ? false : true,
 	logging: false,
