@@ -57,6 +57,7 @@ export class LogService {
 		}
 
 		await this.initialize();
+		const total = await this.logsRepository.count({ where });
 		const logs = await this.logsRepository.find({
 			where,
 			skip: offset,
@@ -66,7 +67,7 @@ export class LogService {
 
 		return {
 			data: logs,
-			total: logs.length,
+			total,
 			page: query?.page || 1,
 			count: query?.count || 20,
 		};
