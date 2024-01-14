@@ -38,7 +38,7 @@ export class MetricService {
 				sub = subDays;
 		}
 
-		return format(sub(from, num), "yyyy-MM-dd HH:mm:ss");
+		return format(sub(from, num), "yyyy-MM-dd");
 	}
 
 	public async getSummary(apps: App[]) {
@@ -53,7 +53,7 @@ export class MetricService {
 
 		const query = Database.datasource!.createQueryRunner();
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
-		const before = this.getBeforeDate(new Date());
+		const before = this.getBeforeDate(subWeeks(new Date(), 3));
 
 		const data = await Promise.all(
 			apps.map(async (app) => {
@@ -97,7 +97,7 @@ export class MetricService {
 		console.log(before);
 
 		const data: { level: string; weight: number; createdAt: string }[] = await queryRunner.query(
-			"SELECT level, count(level) weight, DATE_FORMAT(createdAt, '%Y-%m-%d %H') createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, DATE_FORMAT(createdAt, '%Y-%m-%d %H') ORDER BY createdAt LIMIT 10000",
+			"SELECT level, count(id) weight, MAX(DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i:00')) createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, YEAR(createdAt), MONTH(createdAt), DAY(createdAt), HOUR(createdAt), MINUTE(createdAt);",
 			[before, date, appId]
 		);
 
