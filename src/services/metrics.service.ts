@@ -6,6 +6,8 @@ import { Repository } from "typeorm";
 
 const debug = require("debug")("app:metrics-service");
 
+type Interval = "daily" | "monthly" | "hourly";
+
 export class MetricService {
 	private metricRepository: Repository<Metrics>;
 
@@ -82,9 +84,27 @@ export class MetricService {
 		return data;
 	}
 
-	public async getAppSummary(appId: string, timerange: string = "2h") {
+	private resolveIntervalFormat(interval: Interval) {
+		const base = "YEAR(createdAt), ";
+		switch (interval) {
+			case "daily":
+				return ["%Y-%m-%d 00:00:00", base + "MONTH(createdAt), DAY(createdAt)"];
+			case "hourly":
+				return ["%Y-%m-%d %H:00:00", base + "MONTH(createdAt), DAY(createdAt), HOUR(createdAt)"];
+			case "monthly":
+				return ["%Y-%m-01 00:00:00", base + "MONTH(createdAt)"];
+			default:
+				return ["%Y-%m-%d %H:%i:00", base + "MONTH(createdAt), DAY(createdAt), HOUR(createdAt), MINUTE(createdAt)"];
+		}
+	}
+
+	public async getAppSummary(
+		appId: string,
+		timerange: string = "1d",
+		interval: Interval = "hourly"
+	) {
 		const redis = new Redis();
-		const cacheKey = `app-summary-${appId}-${timerange}`;
+		const cacheKey = `app-summary-${appId}-${timerange}-${interval}`;
 		const cached = await redis.get(cacheKey);
 		if (cached) {
 			return JSON.parse(cached);
@@ -94,10 +114,10 @@ export class MetricService {
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
 
 		const before = this.getBeforeDate(new Date(), timerange);
-		console.log(before);
 
+		const assist = this.resolveIntervalFormat(interval);
 		const data: { level: string; weight: number; createdAt: string }[] = await queryRunner.query(
-			"SELECT level, count(id) weight, MAX(DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i:00')) createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, YEAR(createdAt), MONTH(createdAt), DAY(createdAt), HOUR(createdAt), MINUTE(createdAt);",
+			`SELECT level, count(id) weight, MAX(DATE_FORMAT(createdAt, '${assist[0]}')) createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, ${assist[1]};`,
 			[before, date, appId]
 		);
 

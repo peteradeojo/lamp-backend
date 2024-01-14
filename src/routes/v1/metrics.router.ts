@@ -21,7 +21,8 @@ export default function metricsRouter() {
 	router.get("/:appId", async (req, res) => {
 		try {
 			const { appId } = req.params;
-			const metrics = await metricService.getAppSummary(appId);
+			const { range, interval } = req.query;
+			const metrics = await metricService.getAppSummary(appId, range as any, interval as any);
 
 			return res.json({ data: metrics });
 		} catch (error) {
