@@ -20,6 +20,7 @@ export class MetricService {
 	}
 
 	private getBeforeDate(from: Date, timerange = "1d") {
+		// @ts-ignore
 		const [source, num, period, ...rest] = /^(\d+)(w|d|h)$/.exec(timerange);
 
 		let sub = undefined;
