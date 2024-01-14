@@ -5,9 +5,11 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
+    "@fakerjs/faker": "^3.0.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
+    "@types/faker": "^6.6.9",
     "@types/jest": "^29.5.3",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.4.8",
@@ -22,9 +24,12 @@
     "@types/speakeasy": "^2.0.7",
     "@types/supertest": "^2.0.12",
     "@types/uuid": "^9.0.2",
+    "casual": "^1.6.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
+    "faker": "^6.6.6",
     "jest": "^29.6.2",
+    "json-schema-faker": "^0.5.5",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "ts-node-dev": "^2.0.0",
@@ -63,17 +68,19 @@
     "uuid": "^9.0.0"
   },
   "scripts": {
-    "dev-setup": "NODE_ENV=development DEBUG=app,app:* tsnd --respawn --transpile-only --cls --rs --ignore-watch node_modules --no-notify -r tsconfig-paths/register",
-    "dev": "cross-env NODE_ENV=development DEBUG=app,app:* tsnd --respawn --transpile-only --cls --rs --ignore-watch node_modules --no-notify -r tsconfig-paths/register src/index.ts",
+    "dev-setup": "cross-env NODE_ENV=development DEBUG=app,app:* tsnd --transpile-only -r tsconfig-paths/register",
+    "dev-setup:watch": "cross-env NODE_ENV=development DEBUG=app,app:* tsnd --respawn --transpile-only --cls --rs --ignore-watch node_modules --no-notify -r tsconfig-paths/register",
+    "dev": "npm run dev-setup:watch src/index.ts",
     "build": "tsc",
     "start": "cross-env DEBUG=app,app:* node -r module-alias/register dist/index.js",
     "test": "jest",
     "prod-setup": "DEBUG=app,app:* node -r module-alias/register",
-    "dev-metrics": "DEBUG=app,app:* npm run dev-setup src/metric-collator.ts",
+    "dev-metrics": "npm run dev-setup:watch src/metric-collator.ts",
     "start-metrics": "DEBUG=app,app:* node -r module-alias/register dist/metric-collator.js",
-    "seed-dev": "tsnd --respawn --transpile-only --rs --ignore-watch node_modules -r tsconfig-paths/register src/typeorm/seeder.ts",
+    "seed-dev": "npm run dev-setup src/typeorm/seeder.ts",
     "seed": "node -r module-alias/register dist/typeorm/seeder.js",
-    "typeorm": "typeorm-ts-node-commonjs -d src/typeorm/data-source.ts"
+    "typeorm": "typeorm-ts-node-commonjs -d src/typeorm/data-source.ts",
+    "seeder": "npm run dev-setup src/typeorm/nseeder.ts"
   },
   "engines": {
     "node": "^16"

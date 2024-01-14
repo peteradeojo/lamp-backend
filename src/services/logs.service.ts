@@ -1,6 +1,6 @@
 import { Log, LogType } from "@entities/Log";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
-import { Database } from "@lib/database";
+import { Database, Redis } from "@lib/database";
 import { App } from "@entities/App";
 
 import { debug } from "console";
@@ -16,9 +16,11 @@ export type LogData = {
 
 export class LogService {
 	private logsRepository: Repository<Log>;
+	private redis;
 
 	constructor() {
 		this.logsRepository = Database.datasource!?.getRepository(Log);
+		this.redis = Redis.getClient()!;
 	}
 
 	private async initialize() {
@@ -57,6 +59,7 @@ export class LogService {
 		}
 
 		await this.initialize();
+		const total = await this.logsRepository.count({ where });
 		const logs = await this.logsRepository.find({
 			where,
 			skip: offset,
@@ -66,7 +69,7 @@ export class LogService {
 
 		return {
 			data: logs,
-			total: logs.length,
+			total,
 			page: query?.page || 1,
 			count: query?.count || 20,
 		};
@@ -79,6 +82,19 @@ export class LogService {
 		});
 
 		this.logsRepository.save(log);
+		return log;
+	}
+
+	async saveLogToTemp(logData: LogData) {
+		await this.initialize();
+		const log = this.logsRepository.create({
+			...logData,
+		});
+		log.saved = false;
+
+		const cacheKey = `log-prewrite`;
+		this.redis.hset(cacheKey, 1, JSON.stringify(log));
+
 		return log;
 	}
 

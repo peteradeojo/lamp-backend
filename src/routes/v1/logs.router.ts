@@ -43,7 +43,8 @@ export default function logsRouter() {
 
 			try {
 				const ip = ipware.getClientIP(req);
-				const log = await logService.saveLog({
+				// const log = await logService.saveLogs({
+				const log = await logService.saveLogToTemp({
 					app: { id: app.id },
 					...req.body,
 					ip: ip?.ip || req.ip,
