@@ -1,7 +1,7 @@
 import { App } from "@entities/App";
 import { Metrics } from "@entities/Metrics";
 import { Database, Redis } from "@lib/database";
-import { format, subDays, subWeeks } from "date-fns";
+import { format, subDays, subHours, subWeeks } from "date-fns";
 import { Repository } from "typeorm";
 
 const debug = require("debug")("app:metrics-service");
@@ -19,12 +19,32 @@ export class MetricService {
 		}
 	}
 
+	private getBeforeDate(from: Date, timerange = "1d") {
+		const [source, num, period, ...rest] = /^(\d+)(w|d|h)$/.exec(timerange);
+
+		let sub = undefined;
+		switch (period) {
+			case "d":
+				sub = subDays;
+				break;
+			case "w":
+				sub = subWeeks;
+				break;
+			case "h":
+				sub = subHours;
+				break;
+			default:
+				sub = subDays;
+		}
+
+		return format(sub(from, num), "yyyy-MM-dd HH:mm:ss");
+	}
+
 	public async getSummary(apps: App[]) {
-		// this.initialize();
 		const redis = new Redis();
 		const ids = apps.map((app) => app.id);
 
-		const cacheKey = `metrics-summary:${ids.join('-')}`;
+		const cacheKey = `metrics-summary:${ids.join("-")}`;
 		const cached = await redis.get(cacheKey);
 		if (cached) {
 			return JSON.parse(cached);
@@ -32,9 +52,7 @@ export class MetricService {
 
 		const query = Database.datasource!.createQueryRunner();
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
-		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
-
-		// const data = await query.query(`SELECT l.level, count(l.id) weight, l.appId, a.title app from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId IN (?) GROUP BY appId, level`, [before, date, ids]);
+		const before = this.getBeforeDate(new Date());
 
 		const data = await Promise.all(
 			apps.map(async (app) => {
@@ -43,7 +61,7 @@ export class MetricService {
 						app: app.title,
 						appId: app.id,
 						data: await query.query(
-							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId = ? GROUP BY appId, level`,
+							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId = ? GROUP BY appId, level LIMIT 10000`,
 							[before, date, app.id]
 						),
 					};
@@ -58,20 +76,31 @@ export class MetricService {
 			})
 		);
 
-		await redis.put(cacheKey, JSON.stringify(data), 60 * 10);
+		redis.put(cacheKey, JSON.stringify(data), 60 * 5);
 
 		return data;
 	}
 
-	public async getAppSummary(appId: string, timerange: string = "1d") {
-		const queryRunner = Database.datasource!.createQueryRunner();
+	public async getAppSummary(appId: string, timerange: string = "2h") {
+		const redis = new Redis();
+		const cacheKey = `app-summary-${appId}-${timerange}`;
+		const cached = await redis.get(cacheKey);
+		if (cached) {
+			return JSON.parse(cached);
+		}
 
+		const queryRunner = Database.datasource!.createQueryRunner();
 		const date = format(new Date(), "yyyy-MM-dd 23:59:59");
-		const before = format(subWeeks(new Date(), 1), "yyyy-MM-dd 23:59:59");
+
+		const before = this.getBeforeDate(new Date(), timerange);
+		console.log(before);
+
 		const data: { level: string; weight: number; createdAt: string }[] = await queryRunner.query(
-			"SELECT level, count(level) weight, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') ORDER BY createdAt",
+			"SELECT level, count(level) weight, DATE_FORMAT(createdAt, '%Y-%m-%d %H') createdAt FROM logs WHERE (createdAt BETWEEN ? AND ?) AND appId = ? GROUP BY level, DATE_FORMAT(createdAt, '%Y-%m-%d %H') ORDER BY createdAt LIMIT 10000",
 			[before, date, appId]
 		);
+
+		redis.put(cacheKey, JSON.stringify(data), 60 * 5);
 
 		return data;
 	}

@@ -8,13 +8,13 @@ export class Database {
 	public static datasource?: DataSource;
 
 	static async initialize(datasource: DataSource) {
-    try {
+		try {
 			await datasource.initialize();
 			debug("Data source initialized");
-			// if (datasource.isInitialized) {
 			// 	await datasource.synchronize();
-			// } 
-      Database.datasource = datasource;
+			// if (datasource.isInitialized) {
+			// }
+			Database.datasource = datasource;
 		} catch (err) {
 			debug(err);
 		}
@@ -31,11 +31,7 @@ export class Database {
 }
 
 interface CacheClient {
-	put(
-		key: string,
-		value: string | number | Buffer,
-		expiry?: number
-	): Promise<void>;
+	put(key: string, value: string | number | Buffer, expiry?: number): Promise<void>;
 	get(key: string): Promise<string | null>;
 }
 
@@ -46,11 +42,7 @@ export class Cache {
 		Cache.client = new Redis();
 	}
 
-	static async put(
-		key: string,
-		value: string | number | Buffer,
-		expiry?: number
-	) {
+	static async put(key: string, value: string | number | Buffer, expiry?: number) {
 		await Cache.client.put(key, value, expiry);
 	}
 
@@ -62,15 +54,19 @@ export class Cache {
 export class Redis implements CacheClient {
 	static client?: RedisType;
 
-	// constructor() {
-	// 	this.initialize();
-	// }
-
-	static initialize() {
-		if (!Redis.client || Redis.client.status != 'ready') {
-			Redis.client = new redis(defaultRedisConfig);
-			Redis.client.on("connect", () => debug("Redis client connected"));
+	static initialize(force = false) {
+		if (force) {
+			Redis.disconnect();
 		}
+		
+		if (Redis.client) {
+			if (Redis.client.status != "close" && Redis.client.status != "end") {
+				return;
+			}
+		}
+
+		Redis.client = new redis(defaultRedisConfig);
+		Redis.client.on("connect", () => debug("Redis client connected"));
 	}
 
 	async put(key: string, value: string | number | Buffer, expiry?: number) {
@@ -78,7 +74,7 @@ export class Redis implements CacheClient {
 			Redis.initialize();
 		}
 
-		Redis.client!.set(key, value, 'EX', expiry ? expiry : 60 * 10);
+		Redis.client!.set(key, value, "EX", expiry ? expiry : 60 * 10);
 	}
 
 	async get(key: string): Promise<string | null> {
@@ -87,9 +83,17 @@ export class Redis implements CacheClient {
 	}
 
 	static getClient() {
-		if (!Redis.client || Redis.client.status != 'ready') {
+		if (!Redis.client || Redis.client.status != "ready") {
 			Redis.initialize();
 		}
 		return Redis.client;
+	}
+
+	static disconnect() {
+		if (Redis.client) {
+			Redis.client.disconnect();
+			Redis.client = undefined;
+			return;
+		}
 	}
 }

@@ -79,7 +79,7 @@ export default function appsRouter(): Router {
 		try {
 			const app = await appService.getApp(parseInt(id));
 
-			const canView = await appService.canUseApp(Number(id), req.user!)
+			const canView = await appService.canUseApp(Number(id), req.user!);
 			if (!app) {
 				return res.status(404).json({ message: "App `id` invalid", data: {} });
 			}
@@ -144,8 +144,8 @@ export default function appsRouter(): Router {
 				return res.status(403).json({ message: "Forbidden" });
 			}
 
-			const team = await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
-			if (team.length < 1 || team[0].ownerId !== req.user!.id) {
+			const [team] = await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
+			if (!team || team.ownerId !== req.user!.id) {
 				return res.status(400).json({ message: "Forbidden" });
 			}
 
