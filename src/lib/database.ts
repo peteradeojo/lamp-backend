@@ -54,7 +54,11 @@ export class Cache {
 export class Redis implements CacheClient {
 	static client?: RedisType;
 
-	static initialize() {
+	static initialize(force = false) {
+		if (force) {
+			Redis.disconnect();
+		}
+		
 		if (Redis.client) {
 			if (Redis.client.status != "close" && Redis.client.status != "end") {
 				return;
@@ -83,5 +87,13 @@ export class Redis implements CacheClient {
 			Redis.initialize();
 		}
 		return Redis.client;
+	}
+
+	static disconnect() {
+		if (Redis.client) {
+			Redis.client.disconnect();
+			Redis.client = undefined;
+			return;
+		}
 	}
 }
