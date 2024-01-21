@@ -96,7 +96,7 @@ export default class TeamService {
 		if (isNew) {
 			const passwordsPresent = "password" in req.body && "password_confirmation" in req.body;
 
-			if (!passwordsPresent  || password !== password_confirmation)
+			if (!passwordsPresent || password !== password_confirmation)
 				return {
 					status: 400,
 					data: {
@@ -216,14 +216,19 @@ export default class TeamService {
 	}
 
 	async getParticipatingTeams(user: User) {
-		const teams = await this.teamRepository.find({
-			relationLoadStrategy: "join",
-			where: {
-				members: {
-					user: user as any,
+		try {
+			const teams = await this.teamRepository.find({
+				relationLoadStrategy: "join",
+				where: {
+					members: {
+						user: user as any,
+					},
 				},
-			},
-		});
-		return teams;
+			});
+			return teams;
+		} catch (err) {
+			console.error(err);
+			return [];
+		}
 	}
 }
