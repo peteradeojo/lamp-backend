@@ -150,7 +150,7 @@ export default function appsRouter(): Router {
 			}
 
 			try {
-				const response = await appService.addAppToTeam(app.id, team[0].id);
+				const response = await appService.addAppToTeam(app.id, team.id);
 				return res.json({ message: "Successful" });
 			} catch (error: any) {
 				console.error(error);
