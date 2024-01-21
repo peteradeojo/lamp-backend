@@ -89,14 +89,14 @@ export default class TeamService {
 	}
 
 	async acceptInvite(req: Request) {
-		const { token, email } = req.query;
+		const { token, email, password, password_confirmation } = req.body;
 
-		let isNew = "new" in req.query;
+		let isNew = "new" in req.body;
 
 		if (isNew) {
 			const passwordsPresent = "password" in req.body && "password_confirmation" in req.body;
 
-			if (!passwordsPresent)
+			if (!passwordsPresent  || password !== password_confirmation)
 				return {
 					status: 400,
 					data: {
@@ -132,7 +132,6 @@ export default class TeamService {
 			if (user) isNew = false;
 
 			if (!user) {
-				const { password } = req.body;
 				user = await userService.createUser({
 					email: email as string,
 					name: "John doe",

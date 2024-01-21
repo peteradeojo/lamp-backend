@@ -65,15 +65,11 @@ export const v1Router = () => {
 	router.post(
 		"/accept-invite",
 		RateLimiter(10),
-		validateQuerySchema(
+		validateSchema(
 			Joi.object({
 				token: Joi.string().uuid().required(),
 				email: Joi.string().email().required(),
-				new: Joi.optional(),
-			})
-		),
-		validateSchema(
-			Joi.object({
+				new: Joi.boolean().optional(),
 				password: Joi.string().min(8).max(16).optional(),
 				password_confirmation: Joi.string().optional().valid(Joi.ref("password")),
 			})
