@@ -11,5 +11,8 @@ module.exports = {
     '@middleware/(.*)$': '<rootDir>/src/middleware/$1',
   },
   globalSetup: './src/tests/setup.js',
-  globalTeardown: "./src/tests/teardown.ts"
+  globalTeardown: "./src/tests/teardown.ts",
+  testPathIgnorePatterns: [
+    "./dist/"
+  ]
 };
