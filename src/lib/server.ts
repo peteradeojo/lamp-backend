@@ -7,7 +7,7 @@ const debug = require("debug")("app:server");
 
 import { AppDataSource } from "../typeorm/data-source";
 import { corsOptions } from "../config";
-import { Database } from "./database";
+import { Cache, Database } from "./database";
 // import { v1Router } from "../routes/v1";
 import passportConfig from "./passport";
 
@@ -16,9 +16,9 @@ export default class Server {
 	protected static port: number;
 
 	public static async bootstrap() {
+		Cache.initialize();
+		await Database.initialize(AppDataSource);
 		try {
-			// Cache.initialize();
-			await Database.initialize(AppDataSource);
 		} catch (err) {
 			console.error(err);
 			debug(err);
@@ -73,5 +73,10 @@ export default class Server {
 	private static registerRoutes(app: Express): void {
 		const { v1Router } = require("../routes/v1");
 		app.use("/v1", v1Router());
+	}
+
+	public static async destroy() {
+		await Database.destroy();
+		Cache.destroy();
 	}
 }

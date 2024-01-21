@@ -4,3 +4,6 @@ dist
 .env.*
 !.env.example
 *-error.log
+.clinic
+
+database.sqlite

@@ -16,7 +16,7 @@ export class Log extends TimeStamped {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ type: "enum", enum: LogType })
+	@Column({ type: "varchar" })
 	level: string;
 
 	@Column({ length: 1024 })

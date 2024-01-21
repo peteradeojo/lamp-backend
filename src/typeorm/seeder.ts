@@ -1,9 +1,3 @@
-require("dotenv").config();
-
-const debug = (str: any) => {
-	console.log(str);
-};
-
 import { Database } from "@lib/database";
 import { AppDataSource } from "./data-source";
 import { DataSource, Repository } from "typeorm";
@@ -30,19 +24,19 @@ const tiers = [
 ];
 
 const tierSeeder = async (datasource: DataSource) => {
-	// const tierData = tierRepository.create(tiers as any)
-	// await tierRepository.upsert(tierData, {
-	// 	conflictPaths: {
-	// 		name: true,
-	// 		id: true,
-	// 	},
-	// 	skipUpdateIfNoValuesChanged: true,
-	// 	upsertType: "on-duplicate-key-update"
-	// });
 	const manager = Database.datasource!.manager;
 
+	const check = await manager.query("SELECT COUNT(*) as num FROM tiers");
+	if (check[0]['num'] > 0) {
+		return;
+	}
+
 	for (let tier of tiers) {
-		let query = `INSERT INTO tiers (name, description, limits, amount) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), limits = VALUES(limits), amount = VALUES(amount)`;
+		let query = `INSERT INTO tiers (name, description, limits, amount) VALUES (?, ?, ?, ?)`;
+
+		if (process.env.DATABASE_TYPE !== "sqlite") {
+			query += ` ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), limits = VALUES(limits), amount = VALUES(amount)`;
+		}
 
 		await manager.query(query, [
 			tier.name,
@@ -57,22 +51,16 @@ const tierSeeder = async (datasource: DataSource) => {
 
 const seeders = [tierSeeder];
 
-async function main() {
+export default async () => {
 	try {
 		await Database.initialize(AppDataSource);
 
 		await Promise.all(seeders.map((s) => s(Database.datasource!)));
 		// await Database.destroy();
 
-		debug("DB Seeding completed.");
-
 		return "Done";
 	} catch (err) {
 		console.error(err);
 		return err;
-	} finally {
-		process.exit(0);
 	}
-}
-
-main().then((r) => debug(r));
+};

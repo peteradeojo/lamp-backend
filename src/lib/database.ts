@@ -8,16 +8,12 @@ export class Database {
 	public static datasource?: DataSource;
 
 	static async initialize(datasource: DataSource) {
-		try {
-			await datasource.initialize();
-			debug("Data source initialized");
-			// 	await datasource.synchronize();
-			// if (datasource.isInitialized) {
-			// }
-			Database.datasource = datasource;
-		} catch (err) {
-			debug(err);
+		if (Database.datasource) {
+			return;
 		}
+		await datasource.initialize();
+		Database.datasource = datasource;
+		debug("Database initialized successfully");
 	}
 
 	static async destroy() {
@@ -36,18 +32,25 @@ interface CacheClient {
 }
 
 export class Cache {
-	static client: CacheClient;
+	static client?: CacheClient;
 
 	static initialize() {
 		Cache.client = new Redis();
 	}
 
 	static async put(key: string, value: string | number | Buffer, expiry?: number) {
-		await Cache.client.put(key, value, expiry);
+		await Cache.client?.put(key, value, expiry);
 	}
 
-	static async get(key: string): Promise<string | null> {
-		return await Cache.client.get(key);
+	static async get(key: string): Promise<string | null |undefined> {
+		return await Cache.client?.get(key);
+	}
+
+	static async destroy() {
+		if (Cache.client)  {
+			Redis.disconnect();
+			Cache.client = undefined;
+		}
 	}
 }
 

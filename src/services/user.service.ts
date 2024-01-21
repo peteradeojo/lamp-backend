@@ -48,10 +48,10 @@ export class UserService {
 		if (!this.userRepository) {
 			this.userRepository = Database.datasource?.getRepository(User)!;
 		}
-		if (this.accountRepository) {
+		if (!this.accountRepository) {
 			this.accountRepository = Database.datasource?.getRepository(Account)!;
 		}
-		if (this.tierRepository) {
+		if (!this.tierRepository) {
 			this.tierRepository = Database.datasource?.getRepository(Tier)!;
 		}
 	}
@@ -163,7 +163,7 @@ export class UserService {
 		}
 
 		await this.accountRepository.upsert({ user }, ["user"]);
-		const query = await this.queryRunner.query(
+		const query = await this.accountRepository.query(
 			`UPDATE accounts set tierId = ${tier.id} WHERE userId = ${user.id}`
 		);
 	}

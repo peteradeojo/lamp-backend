@@ -1,5 +1,4 @@
 import casual from "casual";
-require("dotenv").config();
 
 if (process.env.NODE_ENV == "production") {
 	process.exit(1);
@@ -40,9 +39,6 @@ class Generator<T = any> {
 	}
 
 	run() {
-		// if (this.iterCount == 1) {
-		// 	return this.generate();
-		// }
 		const result = [];
 		for (let i = 0; i < this.iterCount; i++) {
 			result.push(this.generate());
@@ -76,29 +72,31 @@ class Seeder<T> {
 	}
 }
 
-(async () => {
-	try {
-		await Database.initialize(AppDataSource);
+export const logSeeder = new Seeder<Log>(
+	{
+		id: () => undefined,
+		text: () => casual.text,
+		level: () => casual.random_element(Object.values(LogType)),
+		ip: () => casual.ip,
+		tags: () => [],
+		app: () => 2, //casual.random_element(apps),
+		context: () => undefined,
+		saved: () => undefined,
+		createdAt: () => undefined,
+		updatedAt: () => undefined,
+	},
+	Log
+);
+
+// (async () => {
+// 	try {
+// 		await Database.initialize(AppDataSource);
 	
-		const logSeeder = new Seeder<Log>(
-			{
-				id: () => undefined,
-				text: () => casual.text,
-				level: () => casual.random_element(Object.values(LogType)),
-				ip: () => casual.ip,
-				tags: () => [],
-				app: () => 2, //casual.random_element(apps),
-				context: () => undefined,
-				saved: () => undefined,
-				createdAt: () => undefined,
-				updatedAt: () => undefined,
-			},
-			Log
-		);
-		console.log(await logSeeder.count(10000).run());
-		process.exit(0);
-	} catch (err) {
-		console.error(err);
-		process.exit(1);
-	}
-})();
+		
+// 		console.log(await logSeeder.count(10000).run());
+// 		process.exit(0);
+// 	} catch (err) {
+// 		console.error(err);
+// 		process.exit(1);
+// 	}
+// })();

@@ -1,15 +1,11 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 
-if (process.env.APP_ENV != "production") {
-	require("dotenv").config();
-}
+// if (process.env.APP_ENV != "production") {
+// 	require("dotenv").config();
+// }
+
 import config from './ormconfig';
-import { Metrics } from "@entities/Metrics";
-import { User } from "@entities/User";
-import { App } from "@entities/App";
-import { Account } from "@entities/Account";
-import { Tier } from "@entities/Tier";
 
 export const AppDataSource = new DataSource(config);
 

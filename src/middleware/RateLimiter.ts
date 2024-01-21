@@ -1,10 +1,8 @@
 import { RedisStore } from "rate-limit-redis";
 import { rateLimit } from "express-rate-limit";
-import RedisClient from "ioredis";
-import { defaultRedisConfig } from "@config/index";
-import { number } from "joi";
+import { Redis } from "@lib/database";
 
-const client = new RedisClient(defaultRedisConfig);
+const client = Redis.getClient();
 export default (limit: number = 60, windowMs: number = 60) => {
 	return rateLimit({
 		windowMs: windowMs * 2000,
