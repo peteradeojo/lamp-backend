@@ -144,7 +144,7 @@ export default function appsRouter(): Router {
 				return res.status(403).json({ message: "Forbidden" });
 			}
 
-			const [team] = await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
+			const team = await teamService.getTeam(teamId); //await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
 			if (!team || team.ownerId !== req.user!.id) {
 				return res.status(400).json({ message: "Forbidden" });
 			}
