@@ -31,11 +31,11 @@ export class Log extends TimeStamped {
 	@Column({ nullable: true, type: "json" })
 	context?: string;
 
-	@ManyToOne(() => App)
+	@ManyToOne(() => App, { nullable: false })
 	@JoinColumn({
-		name: 'appToken',
-		referencedColumnName: 'token',
-		foreignKeyConstraintName: 'logs_app'
+		name: "appToken",
+		referencedColumnName: "token",
+		foreignKeyConstraintName: "logs_app",
 	})
 	app: App;
 
