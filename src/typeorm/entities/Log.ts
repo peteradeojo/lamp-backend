@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { TimeStamped } from "./Timestamp";
 import { App } from "./App";
 
@@ -32,6 +32,11 @@ export class Log extends TimeStamped {
 	context?: string;
 
 	@ManyToOne(() => App)
+	@JoinColumn({
+		name: 'appToken',
+		referencedColumnName: 'token',
+		foreignKeyConstraintName: 'logs_app'
+	})
 	app: App;
 
 	@Column({

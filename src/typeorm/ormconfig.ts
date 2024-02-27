@@ -15,7 +15,7 @@ export default {
 	ssl: process.env.APP_ENV == "production" ? {} : undefined,
 	url: process.env.DATABASE_URL,
 	database: process.env.DATABASE_PATH,
-	synchronize: process.env.APP_ENV == "production" ? false : true,
+	synchronize: false, // process.env.APP_ENV == "production" ? false : true,
 	logging: false,
 	entities: [User, App, Log, Metrics, Account, Tier, PaymentPlan, Team, TeamMember, AppTeam],
 	cache: true,

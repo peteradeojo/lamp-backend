@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 
-// if (process.env.APP_ENV != "production") {
-// 	require("dotenv").config();
-// }
+if (process.env.APP_ENV != "production") {
+	require("dotenv").config();
+}
 
 import config from './ormconfig';
 

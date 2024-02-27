@@ -32,11 +32,10 @@ export default function logsRouter() {
 			})
 		),
 		async (req, res) => {
-			const app = await appService.getAppByToken(req.header('APP_ID')!);
-			if (!app) {
-				return res.status(401).json({ error: "App not found" });
-			}
-
+			// const app = await appService.getAppByToken(req.header('APP_ID')!);
+			// if (!app) {
+			// 	return res.status(401).json({ error: "App not found" });
+			// }
 			if (!Object.values(LogType).includes(req.body.level as LogType)) {
 				req.body.level = "unknown";
 			}
@@ -45,12 +44,12 @@ export default function logsRouter() {
 				const ip = ipware.getClientIP(req);
 				const log = await logService.saveLog({
 				// const log = await logService.saveLogToTemp({
-					app: { id: app.id },
+					app: { token: req.header('APP_ID') },
 					...req.body,
 					ip: ip?.ip || req.ip,
 				});
 
-				IoManager.sendTo('log', log.app.id, log);
+				IoManager.sendTo('log', log.app.token, log);
 				return res.json({ ok: true });
 			} catch (err: any) {
 				return res.status(500).json({ error: err.message });

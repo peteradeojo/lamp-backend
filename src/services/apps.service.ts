@@ -56,7 +56,7 @@ export class AppService {
 			throw new Error("App already exists");
 		}
 
-		const app = this.appRepository.create({ title, user: { id: userId } });
+		const app = this.appRepository.create({ title, user: { id: userId }, token: uuid() });
 		await this.appRepository.save(app);
 
 		return app;

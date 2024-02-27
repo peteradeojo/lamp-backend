@@ -10,7 +10,7 @@ export class App extends TimeStamped {
 	@Column({ type: "varchar", length: 30 })
 	title: string;
 
-	@Column({ nullable: true })
+	@Column({ nullable: false, unique: true, type: 'uuid' })
 	token?: string;
 
 	@ManyToOne(() => User)
