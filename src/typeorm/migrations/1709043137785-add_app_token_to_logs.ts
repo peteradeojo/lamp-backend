@@ -4,7 +4,7 @@ export class AddAppTokenToLogs1709043137785 implements MigrationInterface {
     name = 'AddAppTokenToLogs1709043137785'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE \`logs\` DROP FOREIGN KEY \`FK_1064a718797ca53d425166ea02a\``);
+        // await queryRunner.query(`ALTER TABLE \`logs\` DROP FOREIGN KEY \`FK_1064a718797ca53d425166ea02a\``);
         await queryRunner.query(`ALTER TABLE \`logs\` CHANGE \`appId\` \`appToken\` int NULL`);
         await queryRunner.query(`ALTER TABLE \`apps\` CHANGE \`token\` \`token\` varchar(255) NOT NULL`);
         await queryRunner.query(`ALTER TABLE \`apps\` ADD UNIQUE INDEX \`IDX_7d1818ae4cf21482433b999123\` (\`token\`)`);
