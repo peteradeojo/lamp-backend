@@ -24,7 +24,7 @@ export class AppService {
 		await this.initialize();
 		try {
 			let query =
-				"SELECT app.id, app.title, (app.token IS NOT NULL) AS token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appToken = app.token ";
+				"SELECT app.id, app.title, app.token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appToken = app.token";
 			if (teamId) {
 				query += " RIGHT JOIN team_apps ta ON ta.appId = app.id";
 			}

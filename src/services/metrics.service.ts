@@ -64,8 +64,8 @@ export class MetricService {
 						app: app.title,
 						appId: app.id,
 						data: await query.query(
-							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON a.id = l.appId WHERE (l.createdAt >= ? and l.createdAt <= ?) AND appId = ? GROUP BY appId, level LIMIT 10000`,
-							[before, date, app.id]
+							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON l.appToken = a.token WHERE (l.createdAt >= ? and l.createdAt <= ?) AND l.appToken = ? GROUP BY appToken, level LIMIT 10000`,
+							[before, date, app.token]
 						),
 					};
 				} catch (err: any) {
@@ -79,7 +79,9 @@ export class MetricService {
 			})
 		);
 
-		redis.put(cacheKey, JSON.stringify(data), 60 * 5);
+		if (process.env.NODE_ENV == "production") {
+			redis.put(cacheKey, JSON.stringify(data), 60 * 5);
+		}
 
 		return data;
 	}
@@ -94,7 +96,10 @@ export class MetricService {
 			case "monthly":
 				return ["%Y-%m-01 00:00:00", base + "MONTH(createdAt)"];
 			default:
-				return ["%Y-%m-%d %H:%i:00", base + "MONTH(createdAt), DAY(createdAt), HOUR(createdAt), MINUTE(createdAt)"];
+				return [
+					"%Y-%m-%d %H:%i:00",
+					base + "MONTH(createdAt), DAY(createdAt), HOUR(createdAt), MINUTE(createdAt)",
+				];
 		}
 	}
 
