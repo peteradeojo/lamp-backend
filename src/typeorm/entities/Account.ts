@@ -12,7 +12,7 @@ enum Status {
 export class Account extends TimeStamped {
 	@OneToOne(() => User, (user) => user.account)
 	@JoinColumn({
-		referencedColumnName: "userId"
+		name: 'userId'
 	})
 	user: User;
 
