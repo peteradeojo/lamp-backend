@@ -16,7 +16,7 @@ beforeAll(async () => {
 });
 
 describe("Authentication", () => {
-	it("should register", async () => {
+	it("should register and have session created", async () => {
 		const r = await request(app)
 			.post("/v1/auth/register")
 			.set("Content-type", "application/json")
@@ -29,6 +29,9 @@ describe("Authentication", () => {
 
 		expect(r.statusCode).toBe(200);
 		expect(r.body.data).toHaveProperty("token");
+
+		const data = await cache.get(`user_sessions:${r.body.data.user.id}`);
+    expect(data).not.toBeNull();
 	}, 5000);
 
 	it("should login and have session created", async () => {
@@ -46,7 +49,7 @@ describe("Authentication", () => {
 });
 
 afterAll(async () => {
-	// await db.query("DELETE FROM accounts;");
-	// await db.query("DELETE FROM users;");
+	await db.query("DELETE FROM accounts;");
+	await db.query("DELETE FROM users;");
 	await Server.destroy();
 });

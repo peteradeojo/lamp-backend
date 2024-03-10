@@ -84,6 +84,7 @@ export class UserService {
 	}
 
 	private generateUserToken(user: User | UserType) {
+		this.setUserSession(user);
 		return sign({ id: user.id }, process.env.JWT_SECRET!, {
 			expiresIn: process.env.JWT_EXPIRES_IN || "1h",
 		});
@@ -138,8 +139,6 @@ export class UserService {
 						};
 					}
 
-					this.setUserSession(user);
-
 					return {
 						user: { ...user, password: undefined },
 						token: this.generateUserToken(user),
@@ -170,7 +169,6 @@ export class UserService {
 
 	async createUser(data: Pick<User | UserType, "email" | "name" | "password">): Promise<UserType> {
 		return Database.datasource!.transaction(async (manager) => {
-			console.log(data);
 			const user = this.userRepository.create(data);
 
 			user.password = hashSync(data.password!, parseInt(process.env.SALT_ROUNDS! || "10"));

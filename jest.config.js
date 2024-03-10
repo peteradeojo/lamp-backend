@@ -10,9 +10,9 @@ module.exports = {
     '@services/(.*)$': '<rootDir>/src/services/$1',
     '@middleware/(.*)$': '<rootDir>/src/middleware/$1',
   },
-  globalSetup: './src/tests/setup.js',
+  globalSetup: './src/tests/setup.ts',
   globalTeardown: "./src/tests/teardown.ts",
   testPathIgnorePatterns: [
     "./dist/"
-  ]
+  ],
 };
