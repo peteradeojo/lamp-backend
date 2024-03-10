@@ -64,7 +64,7 @@ export class MetricService {
 						app: app.title,
 						appId: app.id,
 						data: await query.query(
-							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON l.appToken = a.token WHERE (l.createdAt >= ? and l.createdAt <= ?) AND l.apptoken = ? GROUP BY apptoken, level LIMIT 10000`,
+							`SELECT l.level, count(l.id) weight from logs l LEFT JOIN apps a ON l.appToken = a.token WHERE (l.createdAt >= $1 and l.createdAt <= $2) AND l.apptoken = $3 GROUP BY apptoken, level LIMIT 10000`,
 							[before, date, app.token]
 						),
 					};
