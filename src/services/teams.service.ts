@@ -30,13 +30,13 @@ export default class TeamService {
 		const query = `SELECT team.*, JSON_ARRAYAGG(
 			JSON_OBJECT(
 				'id', tm.id,
-				'teamId', tm.teamId,
+				'teamid', tm.teamId,
 				'name', u.name,
 				'email', u.email,
 				'userid', u.id
 			)
 		) as members FROM teams team 
-		LEFT JOIN team_member tm ON tm.teamId = team.id
+		LEFT JOIN team_member tm ON tm.teamid = team.id
 		-- LEFT JOIN team_apps ta ON team.id = ta.teamId
 		-- LEFT JOIN apps app ON ta.appId = app.id AND app.token IS NOT NULL
 		INNER JOIN users u ON tm.userid = u.id
@@ -184,9 +184,9 @@ export default class TeamService {
 
 		if (full) {
 			const data = await this.teamRepository.query(
-				`SELECT app.id, app.title, app.token, app.createdAt FROM team_apps ta
-				JOIN apps app ON ta.appId = app.id 
-			WHERE ta.teamId = ?`,
+				`SELECT app.id, app.title, app.token, app.createdat FROM team_apps ta
+				JOIN apps app ON ta.apid = app.id 
+			WHERE ta.teamid = ?`,
 				[teamId]
 			);
 
@@ -195,7 +195,7 @@ export default class TeamService {
 
 		if (apps == null || apps == undefined) {
 			const data = await this.teamRepository.query(
-				"SELECT appId FROM team_apps ta WHERE teamId = ?",
+				"SELECT appid FROM team_apps ta WHERE teamid = ?",
 				[teamId]
 			);
 
@@ -208,7 +208,7 @@ export default class TeamService {
 	}
 
 	async getAppTeam(appId: number) {
-		const team = await this.teamRepository.query("SELECT teamId FROM team_apps WHERE appId = ?", [
+		const team = await this.teamRepository.query("SELECT teamid FROM team_apps WHERE appid = ?", [
 			appId,
 		]);
 
@@ -217,8 +217,8 @@ export default class TeamService {
 
 	async getParticipatingTeams(user: User) {
 		try {
-			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamId = t.id AND TM.userid = ?
-			JOIN users u ON u.id = TM.userid`;
+			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamid = t.id AND TM.userid = ?
+			JOIN users as u ON u.id = TM.userid`;
 			const teams = await this.teamRepository.query(sql, [user.id, user.id]);
 			return teams;
 		} catch (err) {
