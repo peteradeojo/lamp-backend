@@ -12,7 +12,7 @@ export class PaymentPlan extends TimeStamped {
   name: string
 
   @Column({
-    type: 'double'
+    type: 'float'
   })
   amount: number;
 

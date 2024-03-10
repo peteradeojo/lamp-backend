@@ -12,7 +12,7 @@ import path from "path";
 
 export default {
 	type: (process.env.DATABASE_TYPE as any) || "mysql",
-	ssl: process.env.APP_ENV == "production" ? {} : undefined,
+	ssl: process.env.APP_ENV == "production" ? {} : {},
 	url: process.env.DATABASE_URL,
 	database: process.env.DATABASE_PATH,
 	synchronize: false, // process.env.APP_ENV == "production" ? false : true,
