@@ -29,14 +29,16 @@ export class AppService {
 				query += " RIGHT JOIN team_apps ta ON ta.appid = app.id";
 			}
 
+			let params = [id];
 			query += " WHERE app.userid = $1";
 			if (teamId) {
 				query += " AND ta.teamid = $2";
+				params.push(teamId);
 			}
 
 			query += " GROUP BY app.id";
 
-			const apps = this.appRepository.query(query, [id, teamId]);
+			const apps = this.appRepository.query(query, params);
 			return apps;
 		} catch (err: any) {
 			console.error(err);
