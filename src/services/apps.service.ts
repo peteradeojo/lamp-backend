@@ -24,14 +24,14 @@ export class AppService {
 		await this.initialize();
 		try {
 			let query =
-				"SELECT app.id, app.title, app.token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.appToken = app.token";
+				"SELECT app.id, app.title, app.token, count(log.id) as total_logs, app.createdAt FROM apps app LEFT JOIN logs log ON log.apptoken = app.token";
 			if (teamId) {
-				query += " RIGHT JOIN team_apps ta ON ta.appId = app.id";
+				query += " RIGHT JOIN team_apps ta ON ta.appid = app.id";
 			}
 
-			query += " WHERE app.userId = ?";
+			query += " WHERE app.userid = ?";
 			if (teamId) {
-				query += " AND ta.teamId = ?";
+				query += " AND ta.teamid = ?";
 			}
 
 			query += " GROUP BY app.id";
@@ -116,7 +116,7 @@ export class AppService {
 			`
 			SELECT a.* FROM apps a 
 			JOIN team_apps ta ON ta.appId = a.id
-			JOIN team_member tm ON tm.teamId = ta.teamId AND tm.userId = ?
+			JOIN team_member tm ON tm.teamId = ta.teamId AND tm.userid = ?
 			WHERE a.id = ?
 		`,
 			[user.id, appId]

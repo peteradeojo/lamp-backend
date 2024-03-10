@@ -164,7 +164,7 @@ export class UserService {
 
 		await this.accountRepository.upsert({ user }, ["user"]);
 		const query = await this.accountRepository.query(
-			`UPDATE accounts set tierId = ${tier.id} WHERE userId = ${user.id}`
+			`UPDATE accounts set tierId = ${tier.id} WHERE userid = ${user.id}`
 		);
 	}
 

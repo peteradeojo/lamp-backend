@@ -23,7 +23,7 @@ export default class TeamService {
 	}
 
 	async getTeams(owner: User) {
-		return await this.teamRepository.query("SELECT * FROM teams WHERE ownerId = ?", [owner.id]);
+		return await this.teamRepository.query("SELECT * FROM teams WHERE ownerid = ?", [owner.id]);
 	}
 
 	async getTeam(teamId: number) {
@@ -33,13 +33,13 @@ export default class TeamService {
 				'teamId', tm.teamId,
 				'name', u.name,
 				'email', u.email,
-				'userId', u.id
+				'userid', u.id
 			)
 		) as members FROM teams team 
 		LEFT JOIN team_member tm ON tm.teamId = team.id
 		-- LEFT JOIN team_apps ta ON team.id = ta.teamId
 		-- LEFT JOIN apps app ON ta.appId = app.id AND app.token IS NOT NULL
-		INNER JOIN users u ON tm.userId = u.id
+		INNER JOIN users u ON tm.userid = u.id
 		WHERE team.id = ?`;
 
 		const data = await this.teamRepository.query(query, [teamId]);
@@ -217,8 +217,8 @@ export default class TeamService {
 
 	async getParticipatingTeams(user: User) {
 		try {
-			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamId = t.id AND TM.userId = ?
-			JOIN users u ON u.id = TM.userId`;
+			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamId = t.id AND TM.userid = ?
+			JOIN users u ON u.id = TM.userid`;
 			const teams = await this.teamRepository.query(sql, [user.id, user.id]);
 			return teams;
 		} catch (err) {

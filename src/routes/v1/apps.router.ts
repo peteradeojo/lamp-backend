@@ -30,7 +30,7 @@ export default function appsRouter(): Router {
 			try {
 				if (teamId) {
 					const teams = await Database.datasource!.query(
-						"SELECT * FROM team_member WHERE userId = ? AND teamId = ?",
+						"SELECT * FROM team_member WHERE userid = ? AND teamId = ?",
 						[req.user!.id, teamId]
 					);
 
