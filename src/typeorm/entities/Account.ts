@@ -20,7 +20,9 @@ export class Account extends TimeStamped {
 	id: number;
 
 	@ManyToOne(() => Tier)
-	@JoinColumn()
+	@JoinColumn({
+		name: 'tierid'
+	})
 	tier: Tier;
 
 	@Column({
