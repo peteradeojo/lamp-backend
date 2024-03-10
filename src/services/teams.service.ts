@@ -217,8 +217,7 @@ export default class TeamService {
 
 	async getParticipatingTeams(user: User) {
 		try {
-			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamid = t.id AND TM.userid = ?
-			JOIN users as u ON u.id = TM.userid`;
+			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamid = t.id AND TM.userid = ? LEFT JOIN users as u ON u.id = TM.userid`;
 			const teams = await this.teamRepository.query(sql, [user.id, user.id]);
 			return teams;
 		} catch (err) {
