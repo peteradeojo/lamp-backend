@@ -102,7 +102,7 @@ export class AppService {
 
 	async addAppToTeam(app: number, team: number) {
 		return Database.datasource!.transaction(async (manager) => {
-			const query = "INSERT INTO team_apps (teamId, appId) VALUES (?, ?)";
+			const query = "INSERT INTO team_apps (teamId, appId) VALUES ($1, $2)";
 			const result = await manager.query(query, [team, app]);
 
 			return result;
@@ -118,8 +118,8 @@ export class AppService {
 			`
 			SELECT a.* FROM apps a 
 			JOIN team_apps ta ON ta.appId = a.id
-			JOIN team_member tm ON tm.teamId = ta.teamId AND tm.userid = ?
-			WHERE a.id = ?
+			JOIN team_member tm ON tm.teamId = ta.teamId AND tm.userid = $1
+			WHERE a.id = $2
 		`,
 			[user.id, appId]
 		);
