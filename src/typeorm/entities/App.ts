@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { TimeStamped } from "./Timestamp";
 import { User } from "./User";
 
@@ -14,6 +14,8 @@ export class App extends TimeStamped {
 	token?: string;
 
 	@ManyToOne(() => User)
-	@Column({name: 'userid'})
+	@JoinColumn({
+		name: 'userid'
+	})
 	user: User;
 }
