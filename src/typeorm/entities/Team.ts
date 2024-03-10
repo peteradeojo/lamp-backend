@@ -20,7 +20,9 @@ class Team extends TimeStamped {
 	id: number;
 
 	@ManyToOne(() => User)
-	@JoinColumn()
+	@JoinColumn({
+		name: 'ownerid'
+	})
 	owner: User;
 
 	@OneToMany(() => TeamMember, (member) => member.team)

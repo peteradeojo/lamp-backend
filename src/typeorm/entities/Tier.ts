@@ -38,6 +38,8 @@ export class Tier extends TimeStamped {
 	@OneToOne(() => PaymentPlan, {
 		nullable: true,
 	})
-	@JoinColumn()
+	@JoinColumn({
+		name: 'planid'
+	})
 	plan: PaymentPlan;
 }

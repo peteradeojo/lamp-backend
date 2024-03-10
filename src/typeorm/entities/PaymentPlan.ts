@@ -17,12 +17,14 @@ export class PaymentPlan extends TimeStamped {
   amount: number;
 
   @Column({
-    type: 'bigint'
+    type: 'bigint',
+    name: 'planid'
   })
   planId: number;
 
   @Column({
-    type: 'varchar'
+    type: 'varchar',
+    name: 'plancode',
   })
   planCode: string;
 

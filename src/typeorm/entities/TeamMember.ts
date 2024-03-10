@@ -10,11 +10,15 @@ class TeamMember extends TimeStamped {
 	id: number;
 
 	@ManyToOne(() => User)
-	@JoinColumn()
+	@JoinColumn({
+		name: 'userid'
+	})
 	user: User;
 
 	@ManyToOne(() => Team)
-	@JoinColumn()
+	@JoinColumn({
+		name: 'teamid'
+	})
 	team: Team;
 
 	@Column({

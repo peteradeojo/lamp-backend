@@ -25,13 +25,13 @@ export class User extends TimeStamped {
 	@Column({ type: "varchar", length: 60, select: false })
 	password?: string;
 
-	@Column({ type: "boolean", default: false })
+	@Column({ type: "boolean", default: false, name: 'isadmin' })
 	isAdmin: boolean;
 
-	@Column({ type: "varchar", length: 255, select: false, nullable: true })
+	@Column({ type: "varchar", length: 255, select: false, nullable: true, name: 'twofactorsecret' })
 	twoFactorSecret?: string;
 
-	@Column({ type: "varchar", nullable: true })
+	@Column({ type: "varchar", nullable: true, name: 'githubid' })
 	githubId?: string;
 
 	@OneToOne(() => Account, (account) => account.user)

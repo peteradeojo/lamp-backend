@@ -14,5 +14,6 @@ export class App extends TimeStamped {
 	token?: string;
 
 	@ManyToOne(() => User)
+	@Column({name: 'userid'})
 	user: User;
 }

@@ -12,11 +12,15 @@ class AppTeam extends TimeStamped {
 	id: number;
 
 	@ManyToOne(() => Team)
-  @JoinColumn()
+  @JoinColumn({
+		name: 'teamid'
+	})
 	team: Team;
 
 	@ManyToOne(() => App)
-	@JoinColumn()
+	@JoinColumn({
+		name: 'appid'
+	})
 	app: App;
 
 }
