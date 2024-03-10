@@ -26,6 +26,7 @@ export class Tier extends TimeStamped {
 	@Column({
 		type: "boolean",
 		default: true,
+		name: 'generallyavailable'
 	})
 	generallyAvailable: boolean;
 
