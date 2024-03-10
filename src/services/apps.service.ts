@@ -29,9 +29,9 @@ export class AppService {
 				query += " RIGHT JOIN team_apps ta ON ta.appid = app.id";
 			}
 
-			query += " WHERE app.userid = ?";
+			query += " WHERE app.userid = $1";
 			if (teamId) {
-				query += " AND ta.teamid = ?";
+				query += " AND ta.teamid = $2";
 			}
 
 			query += " GROUP BY app.id";

@@ -2,7 +2,7 @@ import Team from "@entities/Team";
 import TeamMember from "@entities/TeamMember";
 import { User } from "@entities/User";
 import { Database, Redis } from "@lib/database";
-import { In, Repository, SelectQueryBuilder } from "typeorm";
+import { Repository } from "typeorm";
 import Mailer from "./mail.service";
 import { randomUUID } from "crypto";
 import { Request } from "express";
@@ -11,15 +11,12 @@ import { UserService } from "./user.service";
 export default class TeamService {
 	private teamRepository: Repository<Team>;
 	private memberRepository: Repository<TeamMember>;
-	// private appRepository: Repository<AppTeam>;
 	private redis;
 
 	constructor() {
 		this.teamRepository = Database.datasource!.getRepository(Team);
 		this.memberRepository = Database.datasource!.getRepository(TeamMember);
 		this.redis = Redis.getClient();
-		// this.appRepository = Database.datasource!.getRepository(AppTeam);
-		// this.mailer = new Mailer();
 	}
 
 	async getTeams(owner: User) {

@@ -3,23 +3,6 @@ import nodemailer, { Transporter } from "nodemailer";
 export default class Mailer {
 	private static transport: Transporter;
 
-	// constructor() {
-	// 	if (!this.transport) {
-	// 		const config = {
-	// 			host: process.env.SMTP_HOST || "localhost",
-	// 			port: Number(process.env.SMTP_PORT || "587"),
-	// 			secure: false,
-	// 			auth: {
-	// 				user: process.env.SMTP_USER,
-	// 				pass: process.env.SMTP_PASS,
-	// 			},
-	// 			tls: {
-	// 				ciphers: "SSLv3",
-	// 			},
-	// 		};
-	// 		this.transport = nodemailer.createTransport(config);
-	// 	}
-	// }
 	private static initialize() {
 		if (!this.transport) {
 			const config = {
