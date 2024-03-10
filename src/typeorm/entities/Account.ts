@@ -11,7 +11,9 @@ enum Status {
 @Entity({ name: "accounts" })
 export class Account extends TimeStamped {
 	@OneToOne(() => User, (user) => user.account)
-	@JoinColumn({})
+	@JoinColumn({
+		referencedColumnName: "userId"
+	})
 	user: User;
 
 	@PrimaryGeneratedColumn()
