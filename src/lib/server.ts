@@ -32,11 +32,11 @@ export default class Server {
 			Server.app.use(require("morgan")("dev"));
 		}
 
-		Server.app.set('trust proxy', 1);
+		// Server.app.set('trust proxy', 1);
 		Server.app.use(cors(corsOptions));
 		Server.app.use(helmet());
-		Server.app.use(express.json());
 		Server.app.use(express.urlencoded({ extended: true }));
+		Server.app.use(express.json());
 
 		passportConfig(passport);
 		Server.app.use(passport.initialize());
