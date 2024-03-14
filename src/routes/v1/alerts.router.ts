@@ -12,8 +12,8 @@ export default () => {
 		validateQuerySchema(
 			Joi.object({
 				system: Joi.boolean().optional(),
-        page: Joi.number().optional(),
-        count: Joi.number().optional(),
+				page: Joi.number().optional(),
+				count: Joi.number().optional(),
 			}),
 			true
 		),
@@ -21,17 +21,19 @@ export default () => {
 			const bucket = new DatabaseBucket();
 			const query: any = {};
 			if (req.query.system) {
-        if (req.query.system == "true") {
-          query.from_system = 1;
-        } else {
-          query.from_user = 1;
-        }
-      }
+				if (req.query.system == "true") {
+					query.from_system = 1;
+				} else {
+					query.from_user = 1;
+				}
+			}
 
 			const logs = await bucket.fetchLogs(query, {
 				page: Number(req.query.page) || 1,
 				count: Number(req.query.count) || 20,
 			});
+
+			const total =await bucket.getTotalLogs(query);
 
 			return res.json({
 				data: logs,
@@ -39,7 +41,8 @@ export default () => {
 					first_page: 1,
 					page: req.query.page || 1,
 					count: logs.length,
-					last_page: Math.ceil((await bucket.getTotalLogs(query)) / 20) + 1,
+					total, 
+					last_page: Math.ceil(total / Number(req.query.count || 20)),
 				},
 			});
 		}
