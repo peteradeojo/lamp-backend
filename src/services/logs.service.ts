@@ -16,10 +16,12 @@ export type LogData = {
 
 export class LogService {
 	private logsRepository: Repository<Log>;
+	private appRepository: Repository<App>;
 	private redis;
 
 	constructor() {
 		this.logsRepository = Database.datasource!?.getRepository(Log);
+		this.appRepository = Database.datasource!?.getRepository(App);
 		this.redis = Redis.getClient()!;
 	}
 
@@ -100,7 +102,8 @@ export class LogService {
 
 	async deleteLogs(appId: number) {
 		await this.initialize();
-		await this.logsRepository.delete({ app: { id: appId } });
+		const app = await this.appRepository.findOneBy({ id: appId });
+		await this.logsRepository.delete({ app: { token: app?.token } });
 	}
 
 	async deleteLog(logId: number) {

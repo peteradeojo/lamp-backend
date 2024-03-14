@@ -86,7 +86,7 @@
     "seeder": "npm run dev-setup -r dotenv/config src/typeorm/nseeder.ts"
   },
   "engines": {
-    "node": "^16"
+    "node": "^20"
   },
   "_moduleAliases": {
     "@routes": "dist/routes",
