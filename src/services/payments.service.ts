@@ -1,6 +1,6 @@
 import { PaymentPlan } from "@entities/PaymentPlan";
 import { Tier } from "@entities/Tier";
-import { Database } from "@lib/database";
+import { Database, Redis } from "@lib/database";
 import axios from "axios";
 import { Repository } from "typeorm";
 
@@ -56,13 +56,31 @@ export class PaymentService {
 	}
 
 	async plans() {
+		const data = await Redis.client?.get("paystack_payment_plans");
+		if (data) {
+			return JSON.parse(data);
+		}
+
 		const request = await axios.get(`${this.baseUrl}/plan`, {
 			headers: {
 				Authorization: `Bearer ${this.privateKey}`,
 			},
 		});
 
-		return request.data;
+		if (request.data.status == true) {
+			await Redis.client?.setex(
+				"paystack_payment_plans",
+				300,
+				JSON.stringify({
+					data: request.data.data.filter((d: { is_deleted: boolean }) => d.is_deleted == false),
+					meta: request.data.meta,
+				})
+			);
+
+			return request.data;
+		}
+
+		return [];
 	}
 
 	async createPlans(data: any) {

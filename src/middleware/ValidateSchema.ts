@@ -14,9 +14,11 @@ export const validateSchema = (schema: Schema): RequestHandler => {
 	};
 };
 
-export const validateQuerySchema = (schema: Schema): RequestHandler => {
+export const validateQuerySchema = (schema: Schema, allowUnknown = false): RequestHandler => {
 	return (req, res, next) => {
-		const { error } = schema.validate(req.query);
+		const { error } = schema.validate(req.query, {
+			allowUnknown
+		});
 		if (error) {
 			return res.status(400).json({
 				message: error.message,

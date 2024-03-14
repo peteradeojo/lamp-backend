@@ -4,25 +4,29 @@ import CacheBucket from "./logger_buckets/CacheBucket";
 import DatabaseBucket from "./logger_buckets/DatabaseBucket";
 import ConsoleBucket from "./logger_buckets/ConsoleBucket";
 
+type Booleanable = boolean | number;
+
 export interface Log {
 	level: Omit<LogType, "critical" | "warn">;
 	text: string;
 	context?: any;
 	stack?: string;
-	from_system?: number;
-	from_user?: number;
+	from_system?: Booleanable;
+	from_user?: Booleanable;
 	createdat?: Date;
 	updatedat?: Date;
 }
 
-export interface LogBucket {
+export interface LogBucket<T = any, L = Log> {
 	connect(): boolean | Promise<boolean>;
 	save(log: Log): boolean | Promise<boolean>;
+
+	fetchLogs(query: T, options?: any): Promise<L[]>;
 }
 
 export class Logger {
-	private static getLogBucket(): LogBucket {
-		const channel = process.env.LOG_BUCKET;
+	public static getLogBucket(strategy?: string): LogBucket {
+		const channel = strategy || process.env.LOG_BUCKET;
 
 		switch (channel) {
 			case "database":

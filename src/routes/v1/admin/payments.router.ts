@@ -16,7 +16,7 @@ export default function () {
 			Joi.object({
 				name: Joi.string().required(),
 				description: Joi.string(),
-        amount: Joi.number().required(),
+				amount: Joi.number().required(),
 				interval: Joi.string().valid("monthly").required(),
 				tierId: Joi.number().required(),
 			}).required()

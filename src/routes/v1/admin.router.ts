@@ -8,6 +8,7 @@ import { AppService } from "@services/apps.service";
 import { UserService } from "@services/user.service";
 import paymentsRouter from "./admin/payments.router";
 import { LogService } from "@services/logs.service";
+import alertsRouter from "./alerts.router";
 
 const userService = new UserService();
 const appService = new AppService();
@@ -116,6 +117,8 @@ export default function adminRouter() {
 			}
 		}
 	);
+
+	router.use("/alerts", passport.authenticate("admin", { session: false }), alertsRouter());
 
 	return router;
 }

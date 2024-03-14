@@ -92,7 +92,6 @@ export const logSeeder = new Seeder<Log>(
 // 	try {
 // 		await Database.initialize(AppDataSource);
 	
-		
 // 		console.log(await logSeeder.count(10000).run());
 // 		process.exit(0);
 // 	} catch (err) {

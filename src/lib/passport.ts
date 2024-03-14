@@ -42,7 +42,6 @@ const passportConfig = (passport: PassportStatic) => {
 				jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			},
 			async (payload: JwtPayload, done: DoneCallback) => {
-				console.log("authenticating with jwt");
 				const { id } = payload;
 				if (!id) return done(null, false);
 				try {
