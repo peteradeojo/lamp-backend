@@ -1,6 +1,6 @@
 import { Database } from "@lib/database";
 import { LogBucket, Log } from "@services/logger.service";
-import { AppDataSource } from "typeorm/data-source";
+import { AppDataSource } from "../../typeorm/data-source";
 
 export default class DatabaseBucket implements LogBucket {
 	async save(log: Log): Promise<boolean> {
