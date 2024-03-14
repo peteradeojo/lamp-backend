@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // import Server from "./lib/server";
 import Server from "@lib/ioserver";
+import { Logger } from "@services/logger.service";
 
 (async () => {
 	await Server.initialize();

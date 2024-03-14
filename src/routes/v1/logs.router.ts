@@ -11,6 +11,7 @@ import {
 import { AppService } from "../../services/apps.service";
 import { LogType } from "../../typeorm/entities/Log";
 import { IoManager } from "@lib/iomanager";
+import { Logger } from "@services/logger.service";
 
 const router = Router();
 
@@ -43,15 +44,16 @@ export default function logsRouter() {
 			try {
 				const ip = ipware.getClientIP(req);
 				const log = await logService.saveLog({
-				// const log = await logService.saveLogToTemp({
-					app: { token: req.header('APP_ID') },
+					// const log = await logService.saveLogToTemp({
+					app: { token: req.header("APP_ID") },
 					...req.body,
 					ip: ip?.ip || req.ip,
 				});
 
-				IoManager.sendTo('log', log.app.token, log);
+				IoManager.sendTo("log", log.app.token, log);
 				return res.json({ ok: true });
 			} catch (err: any) {
+				Logger.systemError(err);
 				return res.status(500).json({ error: err.message });
 			}
 		}
@@ -81,10 +83,13 @@ export default function logsRouter() {
 			})
 		),
 		async (req, res) => {
-			const { log_id } = req.params;
-			await logService.deleteLog(parseInt(log_id));
-
-			return res.json({ ok: true });
+			try {
+				const { log_id } = req.params;
+				await logService.deleteLog(parseInt(log_id));
+				return res.json({ ok: true });
+			} catch (err) {
+				Logger.systemError(err);
+			}
 		}
 	);
 
@@ -97,10 +102,15 @@ export default function logsRouter() {
 			})
 		),
 		async (req, res) => {
-			const { app_id } = req.params;
-			await logService.deleteLogs(parseInt(app_id));
+			try {
+				const { app_id } = req.params;
+				await logService.deleteLogs(parseInt(app_id));
 
-			return res.json({ ok: true });
+				return res.json({ ok: true });
+			} catch (err: any) {
+				Logger.systemError(err);
+				return res.status(500).json({ ok: false, error: err.message });
+			}
 		}
 	);
 

@@ -10,6 +10,7 @@ import {
 import { Database } from "@lib/database";
 import TeamService from "@services/teams.service";
 import { In } from "typeorm";
+import { Logger } from "@services/logger.service";
 
 const router = Router();
 
@@ -153,7 +154,7 @@ export default function appsRouter(): Router {
 				const response = await appService.addAppToTeam(app.id, team.id);
 				return res.json({ message: "Successful" });
 			} catch (error: any) {
-				console.error(error);
+				Logger.error(error);
 				return res.status(500).json({ message: "Something went wrong. " + error.message });
 			}
 		}

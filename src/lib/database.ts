@@ -26,7 +26,7 @@ export class Database {
 	}
 }
 
-interface CacheClient {
+export interface CacheClient {
 	put(key: string, value: string | number | Buffer, expiry?: number): Promise<void>;
 	get(key: string): Promise<string | null>;
 }

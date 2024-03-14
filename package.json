@@ -83,6 +83,7 @@
     "seed-dev": "npm run dev-setup src/typeorm/seeder.ts",
     "seed": "node -r module-alias/register dist/typeorm/seeder.js",
     "typeorm": "typeorm-ts-node-commonjs -d src/typeorm/data-source.ts",
+    "typeorm-bare": "typeorm-ts-node-commonjs",
     "seeder": "npm run dev-setup -r dotenv/config src/typeorm/nseeder.ts"
   },
   "engines": {

@@ -15,6 +15,7 @@ import { Account } from "@entities/Account";
 import { Tier } from "@entities/Tier";
 import Team from "@entities/Team";
 import TeamMember from "@entities/TeamMember";
+import { Logger } from "./logger.service";
 
 const debug = require("debug")("app:UserService");
 
@@ -226,7 +227,7 @@ export class UserService {
 			debug(user.twoFactorSecret.length);
 			await this.userRepository.save(user);
 		} catch (err) {
-			debug(err);
+			Logger.systemError(err);
 			throw err;
 		}
 	}
@@ -258,7 +259,7 @@ export class UserService {
 
 			return false;
 		} catch (err) {
-			debug(err);
+			Logger.systemError(err);
 			return false;
 		}
 	}
@@ -300,6 +301,7 @@ export class UserService {
 
 			return teams;
 		} catch (err) {
+			Logger.systemError(err, undefined, { user });
 			console.error(err);
 			return [];
 		}
@@ -323,7 +325,7 @@ export class UserService {
 				return team;
 			});
 		} catch (error) {
-			console.error(error);
+			Logger.systemError(error);
 			return null;
 		}
 	}

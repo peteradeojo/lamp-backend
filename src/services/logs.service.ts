@@ -3,8 +3,6 @@ import { FindOptionsWhere, Like, Repository } from "typeorm";
 import { Database, Redis } from "@lib/database";
 import { App } from "@entities/App";
 
-import { debug } from "console";
-
 export type LogData = {
 	level: LogType;
 	text: string;
