@@ -50,6 +50,12 @@ export default function logsRouter() {
 					ip: ip?.ip || req.ip,
 				});
 
+				if (!log) {
+					return res
+						.status(500)
+						.json({ error: "An error occurred  while trying to save your log." });
+				}
+
 				IoManager.sendTo("log", log.app.token, log);
 				return res.json({ ok: true });
 			} catch (err: any) {
