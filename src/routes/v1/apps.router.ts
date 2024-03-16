@@ -36,7 +36,7 @@ export default function appsRouter(): Router {
 					);
 
 					if (teams.length < 1) {
-						return res.status(403).json({ message: "You no wise" });
+						return res.status(404).json({ message: "You no wise" });
 					}
 
 					const appIds = await teamService.getTeamApps(Number(teamId));
@@ -145,8 +145,8 @@ export default function appsRouter(): Router {
 				return res.status(403).json({ message: "Forbidden" });
 			}
 
-			const team = await teamService.getTeam(teamId); //await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
-			if (!team || team.ownerId !== req.user!.id) {
+			const team: any = await teamService.getTeam(teamId); //await Database.datasource!.query("SELECT * FROM teams WHERE id = ?", [teamId]);
+			if (!team || team.ownerid !== req.user!.id) {
 				return res.status(400).json({ message: "Forbidden" });
 			}
 

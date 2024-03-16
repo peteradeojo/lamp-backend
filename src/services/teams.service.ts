@@ -23,7 +23,7 @@ export default class TeamService {
 		return await this.teamRepository.query("SELECT * FROM teams WHERE ownerid = ?", [owner.id]);
 	}
 
-	async getTeam(teamId: number) {
+	async getTeam(teamId: number): Promise<Team | null> {
 		const query = `SELECT team.*, JSON_ARRAYAGG(
 			JSON_OBJECT(
 				'id', tm.id,
@@ -40,7 +40,7 @@ export default class TeamService {
 		WHERE team.id = ?`;
 
 		const data = await this.teamRepository.query(query, [teamId]);
-		if (data.length < 1) return {};
+		if (data.length < 1) return null;
 		return data[0];
 	}
 
@@ -140,15 +140,19 @@ export default class TeamService {
 
 			if (isAlreadyMember) {
 				redis.del(cacheKey);
-				return { data: { message: "Invite expired." }, status: 401 };
+				return { data: { message: "Already a member of this team" }, status: 400 };
 			}
 
-			const tMember = this.memberRepository.create({
-				team: team,
-				user: user,
-			});
+			const tMember = this.memberRepository.query(
+				`INSERT INTO team_member (userid, teamid, status) VALUES ($1, $2, $3)`,
+				[user.id, team.id, 1]
+			);
+			// const tMember = this.memberRepository.create({
+			// 	team: team,
+			// 	user: user,
+			// });
 
-			await this.memberRepository.save(tMember);
+			// await this.memberRepository.save(tMember);
 
 			const auth = await userService.authenticate(user);
 

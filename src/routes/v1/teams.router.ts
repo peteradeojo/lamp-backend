@@ -85,6 +85,9 @@ export default () => {
 
 			// Check if user is already a member of this team
 			const team = await teamService.getTeam(teams[0].id);
+			if (!team) {
+				return res.status(400).json({ message: "Team does not exist" });
+			}
 			const isMember = team!.members.find(
 				(member: any, index: number) => member.userId == user?.id
 			);
