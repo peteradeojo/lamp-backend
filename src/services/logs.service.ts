@@ -2,6 +2,9 @@ import { Log, LogType } from "@entities/Log";
 import { FindOptionsWhere, Like, Repository } from "typeorm";
 import { Database, Redis } from "@lib/database";
 import { App } from "@entities/App";
+import { Logger } from "./logger.service";
+
+const debug = require("debug")("app:log-service");
 
 export type LogData = {
 	level: LogType;
@@ -76,13 +79,19 @@ export class LogService {
 	}
 
 	async saveLog(logData: LogData) {
-		await this.initialize();
-		const log = this.logsRepository.create({
-			...logData,
-		});
+		try {
+			await this.initialize();
+			const log = this.logsRepository.create({
+				...logData,
+			});
 
-		this.logsRepository.save(log);
-		return log;
+			this.logsRepository.save(log);
+			return log;
+		} catch (err) {
+			Logger.systemError(err);
+			debug(err);
+			return;
+		}
 	}
 
 	async saveLogToTemp(logData: LogData) {
