@@ -93,7 +93,7 @@ export default function logsRouter() {
 				const { log_id } = req.params;
 				await logService.deleteLog(parseInt(log_id));
 				return res.json({ ok: true });
-			} catch (err) {
+			} catch (err: any) {
 				Logger.systemError(err);
 			}
 		}

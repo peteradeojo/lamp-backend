@@ -87,7 +87,7 @@ export class LogService {
 
 			this.logsRepository.save(log);
 			return log;
-		} catch (err) {
+		} catch (err: any) {
 			Logger.systemError(err, undefined, logData);
 			debug(err);
 			return;

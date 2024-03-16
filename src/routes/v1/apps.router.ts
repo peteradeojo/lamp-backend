@@ -51,7 +51,8 @@ export default function appsRouter(): Router {
 
 				return res.json({ message: "", data: apps });
 			} catch (error: any) {
-				return res.json({ message: error.message, data: {} });
+				Logger.systemError(error);
+				return res.status(500).json({ message: error.message, data: {} });
 			}
 		}
 	);

@@ -17,6 +17,13 @@ export interface Log {
 	updatedat?: Date;
 }
 
+interface ReadableLog {
+	message: string;
+	stack?: string;
+}
+
+type Logged = ReadableLog
+
 export interface LogBucket<T = any, L = Log> {
 	connect(): boolean | Promise<boolean>;
 	save(log: Log): boolean | Promise<boolean>;
@@ -68,37 +75,37 @@ export class Logger {
 		return log;
 	}
 
-	public static critical(err: any, message?: string, context?: any) {
-		const log = this.buildLog("fatal", message || err.message, context, err.stack);
+	public static critical(err: Logged, title?: string, context?: any) {
+		const log = this.buildLog("fatal", err.message, context, err.stack);
 
 		this.log(log);
 	}
 
-	public static error(err: any, message?: string, context?: any) {
-		const log = this.buildLog("error", message || err.message, context, err.stack);
+	public static error(err: Logged, title?: string, context?: any) {
+		const log = this.buildLog("error", err.message, context, err.stack);
 
 		this.log(log);
 	}
 
-	public static info(err: any, message?: string, context?: any) {
-		const log = this.buildLog("info", message || err.message, context, err.stack);
+	public static info(err: Logged, title?: string, context?: any) {
+		const log = this.buildLog("info", err.message, context, err.stack);
 
 		this.log(log);
 	}
 
-	public static debug(err: any, message?: string, context?: any) {
-		const log = this.buildLog("debug", message || err.message, context, err.stack);
+	public static debug(err: Logged, title?: string, context?: any) {
+		const log = this.buildLog("debug", err.message, context, err.stack);
 
 		this.log(log);
 	}
 
-	public static systemError(err: any, message?: string, context?: any) {
-		this.log(this.buildSystemLog("error", message || err.message, context, err.stack));
+	public static systemError(err: Logged, title?: string, context?: any) {
+		this.log(this.buildSystemLog("error", err.message, context, err.stack));
 	}
-	public static systemInfo(err: any, message?: string, context?: any) {
-		this.log(this.buildSystemLog("info", message || err.message, context, err.stack));
+	public static systemInfo(err: Logged, title?: string, context?: any) {
+		this.log(this.buildSystemLog("info", err.message, context, err.stack));
 	}
-	public static systemDebug(err: any, message?: string, context?: any) {
-		this.log(this.buildSystemLog("debug", message || err.message, context, err.stack));
+	public static systemDebug(err: Logged, title?: string, context?: any) {
+		this.log(this.buildSystemLog("debug", err.message, context, err.stack));
 	}
 }

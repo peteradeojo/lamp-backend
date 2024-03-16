@@ -226,7 +226,7 @@ export class UserService {
 			user.twoFactorSecret = sign({ secret }, process.env.JWT_SECRET!);
 			debug(user.twoFactorSecret.length);
 			await this.userRepository.save(user);
-		} catch (err) {
+		} catch (err: any) {
 			Logger.systemError(err);
 			throw err;
 		}
@@ -258,7 +258,7 @@ export class UserService {
 			}
 
 			return false;
-		} catch (err) {
+		} catch (err: any) {
 			Logger.systemError(err);
 			return false;
 		}
@@ -300,7 +300,7 @@ export class UserService {
 			});
 
 			return teams;
-		} catch (err) {
+		} catch (err: any) {
 			Logger.systemError(err, undefined, { user });
 			console.error(err);
 			return [];
@@ -324,7 +324,7 @@ export class UserService {
 				await this.teamMemberRepo.save(member);
 				return team;
 			});
-		} catch (error) {
+		} catch (error: any) {
 			Logger.systemError(error);
 			return null;
 		}
