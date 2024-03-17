@@ -196,11 +196,11 @@ export default class TeamService {
 			);
 
 			await this.redis!.setex(cacheKey, 60 * 5, JSON.stringify(data));
-			return data.map((a: any) => a.appId);
+			return data.map((a: any) => a.appid);
 		}
 
 		apps = JSON.parse(apps);
-		return apps!.map((a: any) => a.appId);
+		return apps!.map((a: any) => a.appid);
 	}
 
 	async getAppTeam(appId: number) {

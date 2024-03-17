@@ -31,7 +31,7 @@ export default function appsRouter(): Router {
 			try {
 				if (teamId) {
 					const teams = await Database.datasource!.query(
-						"SELECT * FROM team_member WHERE userid = $1 AND teamId = $2",
+						"SELECT * FROM team_member WHERE userid = $1 AND teamid = $2",
 						[req.user!.id, teamId]
 					);
 
@@ -41,6 +41,7 @@ export default function appsRouter(): Router {
 
 					const appIds = await teamService.getTeamApps(Number(teamId));
 					const apps = await appService.getApps({ id: In(appIds) });
+
 					return res.json({ data: apps, message: "Apps fetched successfully." });
 				}
 

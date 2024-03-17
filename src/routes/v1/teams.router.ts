@@ -73,7 +73,7 @@ export default () => {
 			const { team: teamId, email } = req.body;
 
 			let teams = await Database.datasource!.query(
-				"SELECT t.* FROM teams t WHERE t.ownerid = ? and t.id = ?",
+				"SELECT t.* FROM teams t WHERE t.ownerid = $1 and t.id = $2",
 				[req.user!.id, teamId]
 			);
 

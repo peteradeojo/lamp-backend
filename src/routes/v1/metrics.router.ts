@@ -10,6 +10,7 @@ export default function metricsRouter() {
 		try {
 			const { team } = req.query;
 			const apps = await appService.getUserApps((req.user as any).id, team as number | undefined);
+			console.log(apps);
 			const metrics = await metricService.getSummary(apps);
 
 			return res.json(metrics);
