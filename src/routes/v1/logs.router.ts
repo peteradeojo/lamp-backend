@@ -33,19 +33,18 @@ export default function logsRouter() {
 			})
 		),
 		async (req, res) => {
-			// const app = await appService.getAppByToken(req.header('APP_ID')!);
-			// if (!app) {
-			// 	return res.status(401).json({ error: "App not found" });
-			// }
 			if (!Object.values(LogType).includes(req.body.level as LogType)) {
 				req.body.level = "unknown";
 			}
 
 			try {
+				const token = req.header("APP_ID");
+				if (!token) {
+					return res.status(400).json({ message: "No app id provided" });
+				}
 				const ip = ipware.getClientIP(req);
 				const log = await logService.saveLog({
-					// const log = await logService.saveLogToTemp({
-					app: { token: req.header("APP_ID") },
+					app: { token },
 					...req.body,
 					ip: ip?.ip || req.ip,
 				});

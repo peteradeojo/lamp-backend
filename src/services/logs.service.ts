@@ -13,6 +13,8 @@ export type LogData = {
 	tags?: string[];
 	context?: string;
 	app: App;
+	createdat?: string | Date;
+	updatedat?: string | Date;
 };
 
 export class LogService {
@@ -80,17 +82,16 @@ export class LogService {
 
 	async saveLog(logData: LogData) {
 		try {
-			await this.initialize();
-			const log = this.logsRepository.create({
-				...logData,
-			});
+			const data: any = {...logData, app: undefined, createdat: new Date()};
+			data.apptoken = logData.app.token;
 
-			this.logsRepository.save(log);
-			return log;
+			logData.createdat = new Date(Date.now());
+			const cacheClient = Redis.client!;
+			await cacheClient.lpush("pending_logs", JSON.stringify(data));
+			return logData as Log;
 		} catch (err: any) {
-			Logger.systemError(err, undefined, logData);
-			debug(err);
-			return;
+			Logger.systemError(err);
+			console.error(err);
 		}
 	}
 
