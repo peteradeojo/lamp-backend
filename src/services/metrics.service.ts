@@ -3,8 +3,7 @@ import { Metrics } from "@entities/Metrics";
 import { Database, Redis } from "@lib/database";
 import { format, subDays, subHours, subWeeks } from "date-fns";
 import { Repository } from "typeorm";
-
-const debug = require("debug")("app:metrics-service");
+import { Logger } from "./logger.service";
 
 type Interval = "daily" | "monthly" | "hourly";
 
@@ -69,7 +68,7 @@ export class MetricService {
 						),
 					};
 				} catch (err: any) {
-					console.error(err);
+					Logger.systemError(err);
 					return {
 						app: app.title,
 						appId: app.id,

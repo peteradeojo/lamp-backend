@@ -7,6 +7,7 @@ import Mailer from "./mail.service";
 import { randomUUID } from "crypto";
 import { Request } from "express";
 import { UserService } from "./user.service";
+import { Logger } from "./logger.service";
 
 export default class TeamService {
 	private teamRepository: Repository<Team>;
@@ -76,7 +77,7 @@ export default class TeamService {
 				"You've been invited."
 			);
 		} catch (err) {
-			console.error(err);
+			Logger.systemError(err as any);
 		}
 	}
 
@@ -164,7 +165,7 @@ export default class TeamService {
 				status: 201,
 			};
 		} catch (error: any) {
-			console.error(error);
+			Logger.systemError(error);
 			return {
 				data: {
 					message: error.message,
@@ -217,7 +218,7 @@ export default class TeamService {
 			const teams = await this.teamRepository.query(sql, [user.id]);
 			return teams;
 		} catch (err) {
-			console.error(err);
+			Logger.systemError(err as any);
 			return [];
 		}
 	}

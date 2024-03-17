@@ -10,7 +10,7 @@ const debug = require("debug")("app:auth-routes");
 import { UserService } from "../../services/user.service";
 import { validateSchema } from "../../middleware/ValidateSchema";
 import { User } from "../../typeorm/entities/User";
-import { hashSync } from "bcrypt";
+import { Logger } from "@services/logger.service";
 
 const router = Router();
 
@@ -51,6 +51,7 @@ export default function (): Router {
 					message: "Invalid credentials",
 				});
 			} catch (error: any) {
+				Logger.systemError(error);
 				return res.status(500).json({
 					message: error.message,
 				});
@@ -80,6 +81,7 @@ export default function (): Router {
 
 				return res.json({ data: result });
 			} catch (err: any) {
+				Logger.systemError(err);
 				return res.status(500).json({
 					message: err.message,
 				});
@@ -136,6 +138,7 @@ export default function (): Router {
 				});
 			} catch (err) {
 				debug(err);
+				Logger.systemError(err as any);
 				return res.status(500).json({});
 			}
 		}
@@ -219,7 +222,8 @@ export default function (): Router {
 
 			return res.json(userService.authenticateGithub(user as any));
 		} catch (err: any) {
-			console.error(err);
+			Logger.systemError(err);
+			debug(err);
 			return res.status(500).json({
 				message: err.message,
 			});

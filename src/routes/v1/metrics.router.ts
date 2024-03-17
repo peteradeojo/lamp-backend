@@ -1,4 +1,5 @@
 import { AppService } from "@services/apps.service";
+import { Logger } from "@services/logger.service";
 import { MetricService } from "@services/metrics.service";
 import { Router } from "express";
 
@@ -10,12 +11,11 @@ export default function metricsRouter() {
 		try {
 			const { team } = req.query;
 			const apps = await appService.getUserApps((req.user as any).id, team as number | undefined);
-			console.log(apps);
 			const metrics = await metricService.getSummary(apps);
 
 			return res.json(metrics);
 		} catch (err: any) {
-			console.error(err.message);
+			Logger.systemError(err);
 			return res.status(500).json({ message: "An error occurred" });
 		}
 	});
@@ -28,7 +28,7 @@ export default function metricsRouter() {
 
 			return res.json({ data: metrics });
 		} catch (error) {
-			console.error(error);
+			Logger.systemError(error as any);
 			return res.status(500).json({ error });
 		}
 	});

@@ -1,6 +1,7 @@
 import { Database } from "@lib/database";
 import { AppDataSource } from "./data-source";
 import { DataSource, Repository } from "typeorm";
+import { Logger } from "@services/logger.service";
 
 const tiers = [
 	{
@@ -61,6 +62,7 @@ export default async () => {
 		return "Done";
 	} catch (err) {
 		console.error(err);
+		Logger.systemError(err as any);
 		return err;
 	}
 };
