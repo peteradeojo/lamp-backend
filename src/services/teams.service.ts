@@ -24,20 +24,15 @@ export default class TeamService {
 	}
 
 	async getTeam(teamId: number): Promise<Team | null> {
-		const query = `SELECT team.*, JSON_ARRAYAGG(
-			JSON_OBJECT(
-				'id', tm.id,
-				'teamid', tm.teamId,
-				'name', u.name,
-				'email', u.email,
-				'userid', u.id
-			)
-		) as members FROM teams team 
-		LEFT JOIN team_member tm ON tm.teamid = team.id
-		-- LEFT JOIN team_apps ta ON team.id = ta.teamId
-		-- LEFT JOIN apps app ON ta.appId = app.id AND app.token IS NOT NULL
-		INNER JOIN users u ON tm.userid = u.id
-		WHERE team.id = ?`;
+		const query = `SELECT 
+				team.id,
+				team.name,
+				JSON_AGG(json_build_object('id', m.id, 'name', u.name, 'email', u.email)) as members
+			FROM teams team 
+				LEFT JOIN team_member m ON m.teamid = team.id 
+				LEFT JOIN users u ON m.userid = u.id
+			WHERE team.id = $1
+			GROUP BY team.id`;
 
 		const data = await this.teamRepository.query(query, [teamId]);
 		if (data.length < 1) return null;

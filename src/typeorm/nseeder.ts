@@ -1,101 +1,43 @@
-import casual from "casual";
-
-if (process.env.NODE_ENV == "production") {
-	process.exit(1);
-}
-
 import { Database } from "@lib/database";
 import { AppDataSource } from "./data-source";
-import { Log, LogType } from "@entities/Log";
+import { Log } from "@entities/Log";
+import { App } from "@entities/App";
+import { faker, Faker } from "@faker-js/faker";
 
-type Frame<T> = Record<keyof T, () => string | number | undefined | null | Array<any>>;
+abstract class Seeder {
+	constructor() {}
+	abstract run(records?: number): Promise<any>;
+}
 
-class Generator<T = any> {
-	private frame: Frame<T>;
-
-	public iterCount: number | 1 = 1;
-
-	constructor(frame: Frame<T>) {
-		this.frame = frame;
-	}
-
-	// Builder pattern
-	count(n: number) {
-		if (n < 1) {
-			this.iterCount = 1;
-			return this;
+class LogSeeder extends Seeder {
+	async run(records = 10) {
+		const apps = await Database.datasource?.query(`SELECT * FROM apps LIMIT 1`);
+		if (!apps || apps?.length < 1) {
+			return;
 		}
-		this.iterCount = n;
-		return this;
-	}
+		const logRepository = Database.datasource?.getRepository(Log);
 
-	private generate(): Record<string, string> {
-		const obj: Record<string, string> = {};
-		for (let i of Object.keys(this.frame)) {
-			// @ts-ignore
-			obj[i] = this.frame[i]();
-		}
-		return obj;
-	}
+		let query = "";
 
-	run() {
-		const result = [];
-		for (let i = 0; i < this.iterCount; i++) {
-			result.push(this.generate());
+		for (let i = 0; i < records; i++) {
+			query += `INSERT INTO logs (apptoken, text, level) VALUES ('${
+				apps[0].token
+			}', '${faker.word.words({ count: 20 })}', 'error');`;
 		}
 
-		return result;
+		await logRepository?.query(query);
 	}
 }
 
-class Seeder<T> {
-	private generator;
-	private entity;
-	private iterCount: number = 1;
+(async () => {
+	await Database.initialize(AppDataSource);
 
-	constructor(frame: Frame<T>, entity: any) {
-		this.generator = new Generator(frame);
-		this.entity = entity;
-	}
+	// const dataSrc = Database.datasource!;
+	const seeders: Seeder[] = [new LogSeeder()];
+	const runners = await Promise.all(seeders.map((v) => v.run()));
 
-	count(n: number) {
-		this.generator.count(n);
-		return this;
-	}
+	console.log(runners);
 
-	async run() {
-		const data = this.generator.run();
-		const db = Database.getDatasource()?.getRepository(this.entity);
-
-		await db?.save(data);
-		return 1;
-	}
-}
-
-export const logSeeder = new Seeder<Log>(
-	{
-		id: () => undefined,
-		text: () => casual.text,
-		level: () => casual.random_element(Object.values(LogType)),
-		ip: () => casual.ip,
-		tags: () => [],
-		app: () => 2, //casual.random_element(apps),
-		context: () => undefined,
-		saved: () => undefined,
-		createdAt: () => undefined,
-		updatedAt: () => undefined,
-	},
-	Log
-);
-
-// (async () => {
-// 	try {
-// 		await Database.initialize(AppDataSource);
-	
-// 		console.log(await logSeeder.count(10000).run());
-// 		process.exit(0);
-// 	} catch (err) {
-// 		console.error(err);
-// 		process.exit(1);
-// 	}
-// })();
+	await Database.destroy();
+	console.log("Done");
+})();
