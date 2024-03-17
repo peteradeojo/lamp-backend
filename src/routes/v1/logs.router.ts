@@ -8,7 +8,6 @@ import {
 	validateParamsSchema,
 	validateSchema as validateBody,
 } from "../../middleware/ValidateSchema";
-import { AppService } from "../../services/apps.service";
 import { LogType } from "../../typeorm/entities/Log";
 import { IoManager } from "@lib/iomanager";
 import { Logger } from "@services/logger.service";
@@ -16,7 +15,6 @@ import { Logger } from "@services/logger.service";
 const router = Router();
 
 const logService = new LogService();
-const appService: Pick<AppService, "getAppByToken"> = new AppService();
 
 const ipware = new Ipware();
 

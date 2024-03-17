@@ -84,6 +84,7 @@ export class LogService {
 		try {
 			const data: any = {...logData, app: undefined, createdat: new Date()};
 			data.apptoken = logData.app.token;
+			data.context = JSON.stringify(data.context)
 
 			logData.createdat = new Date(Date.now());
 			const cacheClient = Redis.client!;
