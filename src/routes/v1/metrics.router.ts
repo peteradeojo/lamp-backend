@@ -8,7 +8,8 @@ const router = Router();
 export default function metricsRouter() {
 	router.get("/", async (req, res) => {
 		try {
-			const apps = await appService.getUserApps((req.user as any).id);
+			const { team } = req.query;
+			const apps = await appService.getUserApps((req.user as any).id, team as number | undefined);
 			const metrics = await metricService.getSummary(apps);
 
 			return res.json(metrics);
