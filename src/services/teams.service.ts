@@ -182,7 +182,7 @@ export default class TeamService {
 		if (full) {
 			const data = await this.teamRepository.query(
 				`SELECT app.id, app.title, app.token, app.createdat FROM team_apps ta
-				JOIN apps app ON ta.apid = app.id 
+				JOIN apps app ON ta.appid = app.id 
 			WHERE ta.teamid = $1`,
 				[teamId]
 			);
