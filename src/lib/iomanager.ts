@@ -1,41 +1,10 @@
-import { Log } from "@entities/Log";
 import { Server, Socket } from "socket.io";
 const debug = require("debug")("app:iomanager");
-
-// export class IoManager {
-// 	private static io: Server;
-
-// 	// private static logStreamRooms: Set<{ token: string; socketId: string }> = new Set();
-// 	private static logStreamRooms: Set<string> = new Set();
-
-// 	public static initialize(io: Server) {
-// 		IoManager.io = IoManager.configureIo(io);
-// 	}
-
-// 	public static getIO = () => IoManager.io;
-
-// 	public static getRooms = () => IoManager.logStreamRooms;
-
-// 	private static configureIo(io: Server) {
-// 		io.on("connection", (socket) => {
-// 			socket.on("disconnect", () => {
-// 				console.log("Client disconnected");
-// 			});
-
-// 			socket.on("connect-log-stream", (token: string) => {
-// 				IoManager.logStreamRooms.add(token);
-// 				socket.join(token);
-// 				debug(`Client joined room ${token}`);
-// 			});
-// 		});
-
-// 		return io;
-// 	}
-// }
 
 export class IoManager {
 	private static io: Server | undefined;
 	private static rooms: { token: string; id: string }[] = [];
+	private static listeners: { token: string; id: string }[] = [];
 
 	private constructor() {
 		// Private constructor to prevent external instantiation
@@ -58,34 +27,32 @@ export class IoManager {
 	private static configureIo(io: Server) {
 		io.on("connection", (socket: Socket) => {
 			socket.on("disconnect", () => {
-				const room = IoManager.rooms.find((r) => r.id === socket.id);
-				if (room) {
-					socket.leave(room.token);
-					IoManager.rooms = IoManager.rooms.filter((r) => r.id !== socket.id);
-					console.log(`Client left room ${room.token}`);
-				}
-
 				console.log("Client disconnected");
 			});
 
 			socket.on("connect-log-stream", (token: string) => {
-				socket.join(token);
-				IoManager.rooms.push({ token, id: socket.id });
-				console.log(`Client joined room ${token}`);
+				const l = this.getSocketForRoom(token);
+				if (!l) {
+					this.listeners.push({ token, id: socket.id });
+				}
 			});
+
+			socket.on("closing_stream", () => {
+				this.listeners = this.listeners.filter((v) => (v.id = socket.id));
+			});
+
+			console.log("Socket connected");
 		});
 
 		return io;
 	}
 
-	public static getSocketForRoom(room: string): { token: string; id: string } | undefined {
-		return IoManager.rooms.find((r) => r.token === room);
+	public static getSocketForRoom(token: string) {
+		return IoManager.listeners.find((r) => r.token === token);
 	}
 
-	public static sendTo(message: string, room?: string | number, data?: any) {
-		const destination = IoManager.rooms.find((val) => val.token == room);
-		// console.log(this.rooms);
-		// console.log(destination);
+	public static sendTo(message: string, token?: string | number, data?: any) {
+		const destination = IoManager.listeners.find((val) => val.token == token);
 
 		if (destination) {
 			IoManager.io?.to(destination.id).emit(message, data);
