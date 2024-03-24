@@ -6,7 +6,7 @@ export class CreateAlertsAggregatorTable1711269121055 implements MigrationInterf
         await queryRunner.query(`CREATE TABLE IF NOT EXISTS alerts_aggregator (
             id uuid not null,
             apptoken text not null,
-            level log_level not null,
+            level loglevel not null,
             hashed text not null,
             raw text not null,
             createdat timestamp not null,
