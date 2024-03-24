@@ -17,6 +17,11 @@ export class SystemLog extends TimeStamped {
 	text: string;
 
 	@Column({
+		type: "varchar",
+	})
+	origin: string;
+
+	@Column({
 		nullable: true,
 		type: "varchar",
 	})
