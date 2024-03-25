@@ -31,7 +31,9 @@ export class Log extends TimeStamped {
 	@Column({ nullable: true, type: "json" })
 	context?: string;
 
-	@ManyToOne(() => App)
+	@ManyToOne(() => App, {
+		cascade: ['update', 'remove']
+	})
 	@JoinColumn({
 		name: "apptoken",
 		referencedColumnName: "token",

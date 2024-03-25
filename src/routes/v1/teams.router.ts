@@ -89,7 +89,7 @@ export default () => {
 				return res.status(400).json({ message: "Team does not exist" });
 			}
 			const isMember = team!.members.find(
-				(member: any, index: number) => member.userId == user?.id
+				(member: any, index: number) => member.email == user?.email
 			);
 			if (isMember) {
 				return res.status(400).json({ message: "Already a member." });

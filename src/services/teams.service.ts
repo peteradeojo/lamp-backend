@@ -21,13 +21,14 @@ export default class TeamService {
 	}
 
 	async getTeams(owner: User) {
-		return await this.teamRepository.query("SELECT * FROM teams WHERE ownerid = ?", [owner.id]);
+		return await this.teamRepository.query("SELECT t.*, u.name as user FROM teams t JOIN users u ON t.ownerid = u.id WHERE t.ownerid = $1", [owner.id]);
 	}
 
 	async getTeam(teamId: number): Promise<Team | null> {
 		const query = `SELECT 
 				team.id,
 				team.name,
+				team.createdat,
 				JSON_AGG(json_build_object('id', m.id, 'name', u.name, 'email', u.email)) as members
 			FROM teams team 
 				LEFT JOIN team_member m ON m.teamid = team.id 
@@ -214,7 +215,7 @@ export default class TeamService {
 
 	async getParticipatingTeams(user: User) {
 		try {
-			const sql = `SELECT t.id, t.name, t.createdAt FROM teams t LEFT JOIN team_member TM ON TM.teamid = t.id AND TM.userid = $1 LEFT JOIN users u ON u.id = TM.userid`;
+			const sql = `SELECT t.id, t.name, t.createdAt, u.name as user FROM teams t LEFT JOIN team_member TM ON TM.teamid = t.id AND TM.userid = $1 LEFT JOIN users u ON u.id = TM.userid`;
 			const teams = await this.teamRepository.query(sql, [user.id]);
 			return teams;
 		} catch (err) {

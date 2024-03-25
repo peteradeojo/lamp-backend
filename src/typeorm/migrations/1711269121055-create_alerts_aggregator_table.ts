@@ -1,9 +1,8 @@
-import { MigrationInterface, QueryRunner } from "typeorm"
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class CreateAlertsAggregatorTable1711269121055 implements MigrationInterface {
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE TABLE IF NOT EXISTS alerts_aggregator (
+	public async up(queryRunner: QueryRunner): Promise<void> {
+		await queryRunner.query(`CREATE TABLE IF NOT EXISTS alerts_aggregator (
             id uuid not null,
             apptoken text not null,
             level loglevel not null,
@@ -14,11 +13,10 @@ export class CreateAlertsAggregatorTable1711269121055 implements MigrationInterf
             occurences smallint default 1,
             primary key (id),
             unique (apptoken, hashed)
-          );`)
-    }
+          );`);
+	}
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query("DROP TABLE alerts_aggregator");
-    }
-
+	public async down(queryRunner: QueryRunner): Promise<void> {
+		await queryRunner.query("DROP TABLE alerts_aggregator");
+	}
 }
