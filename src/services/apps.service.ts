@@ -49,13 +49,21 @@ export class AppService {
 	async createApp(userId: number, title: string) {
 		await this.initialize();
 
-		let appCheck = await this.appRepository.countBy({
-			title,
+		let apps = await this.appRepository.findBy({
+			// title,
 			user: { id: userId },
 		});
 
+		let appCheck = apps.filter((v) => v.title == title).length;
+
 		if (appCheck > 0) {
 			throw new Error("App already exists");
+		}
+
+		if (apps.length >= 7) {
+			throw new Error(
+				"You have reached the limit for app integrations. Consider upgrading your account to create more."
+			);
 		}
 
 		const app = this.appRepository.create({ title, user: { id: userId }, token: uuid() });
