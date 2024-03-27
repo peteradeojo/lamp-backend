@@ -28,6 +28,7 @@ export default class TeamService {
 		const query = `SELECT 
 				team.id,
 				team.name,
+				team.ownerid,
 				team.createdat,
 				JSON_AGG(json_build_object('id', m.id, 'name', u.name, 'email', u.email)) as members
 			FROM teams team 
