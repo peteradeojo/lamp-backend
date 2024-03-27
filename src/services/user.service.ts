@@ -1,7 +1,6 @@
 import { User } from "../typeorm/entities/User";
 import { Cache, Database, Redis } from "../lib/database";
 import {
-	ArrayContains,
 	FindManyOptions,
 	In,
 	MoreThanOrEqual,
@@ -16,6 +15,7 @@ import { Tier } from "@entities/Tier";
 import Team from "@entities/Team";
 import TeamMember from "@entities/TeamMember";
 import { Logger } from "./logger.service";
+import { AppService } from "./apps.service";
 
 const debug = require("debug")("app:UserService");
 
@@ -34,9 +34,9 @@ export class UserService {
 	private teamMemberRepo: Repository<TeamMember>;
 
 	constructor() {
-		// if (!Database.datasource) {
-		// 	throw new Error("Database not initialized");
-		// }
+		if (!Database.datasource) {
+			// throw new Error("Database not initialized");
+		}
 
 		this.userRepository = Database.datasource?.getRepository(User)!;
 		this.accountRepository = Database.datasource?.getRepository(Account)!;
@@ -307,21 +307,40 @@ export class UserService {
 		}
 	}
 
-	async createTeam(user: AuthenticatedUser, data: { name: string }) {
+	async createTeam(user: AuthenticatedUser, data: { name: string; apps: (number | string)[] }) {
 		try {
 			return Database.datasource!.transaction(async (manager) => {
+				const teamCount = await this.teamsRepository.countBy({ owner: { id: user.id } });
+
+				const appService = new AppService();
+
+				const apps = await appService.getApps({ id: In(data.apps), user: { id: user.id } });
+
+				if (teamCount >= 2) {
+					return {
+						status: "failed",
+						message:
+							"You can only create one team on the free tier. Consider upgrading your account to add more team.",
+					};
+				}
+
 				const team = this.teamsRepository.create({
 					owner: user,
-					...data,
+					name: data.name,
 				});
 
 				await this.teamsRepository.save(team);
+
+				for (let i = 0; i < apps.length; i++) {
+					appService.addAppToTeam(apps[i].id, team.id);
+				}
 
 				const member = this.teamMemberRepo.create({
 					user: user,
 					team: team,
 				});
 				await this.teamMemberRepo.save(member);
+
 				return team;
 			});
 		} catch (error: any) {

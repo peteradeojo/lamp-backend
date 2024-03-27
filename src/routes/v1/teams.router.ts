@@ -52,10 +52,11 @@ export default () => {
 		validateSchema(
 			Joi.object({
 				name: Joi.string().required(),
+				apps: Joi.array().items(Joi.number()),
 			})
 		),
 		async (req, res) => {
-			const data = await userService.createTeam(req.user!, { name: req.body.name });
+			const data = await userService.createTeam(req.user!, { name: req.body.name, apps: req.body.apps });
 
 			return res.json(data);
 		}
